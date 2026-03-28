@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  plan        Plan     @default(STARTER)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]
+  boards      Board[]
+  apiKeys     ApiKey[]
+  webhooks    WebhookSubscription[]
+
+  @@map("organizations")
+}
+
+enum Plan {
+  STARTER
+  GROWTH
+  SCALE
+  ENTERPRISE
+}
+
+model User {
+  id           String   @id @default(cuid())
+  orgId        String
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(MEMBER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  boards       Board[]
+  posts        Post[]
+
+  @@index([orgId])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+model Board {
+  id             String      @id @default(cuid())
+  orgId          String
+  creatorId      String
+  title          String
+  occasionType   OccasionType
+  coverTheme     String      @default("indigo")
+  slug           String      @unique
+  status         BoardStatus @default(DRAFT)
+  recipientName  String
+  recipientEmail String?
+  scheduledAt    DateTime?
+  sentAt         DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  creator  User         @relation(fields: [creatorId], references: [id])
+  posts    Post[]
+  views    BoardView[]
+
+  @@index([orgId])
+  @@index([creatorId])
+  @@map("boards")
+}
+
+enum OccasionType {
+  BIRTHDAY
+  ANNIVERSARY
+  FAREWELL
+  PROMOTION
+  WELCOME
+  CUSTOM
+}
+
+enum BoardStatus {
+  DRAFT
+  ACTIVE
+  SENT
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  boardId     String
+  authorId    String?
+  authorName  String
+  contentText String
+  mediaUrl    String?
+  gifUrl      String?
+  isAnonymous Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  board  Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([boardId])
+  @@map("posts")
+}
+
+model BoardView {
+  id       String   @id @default(cuid())
+  boardId  String
+  ipHash   String
+  viewedAt DateTime @default(now())
+
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId])
+  @@map("board_views")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  orgId       String
+  name        String
+  keyHash     String    @unique
+  keyPrefix   String
+  scopes      String[]
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@map("api_keys")
+}
+
+model WebhookSubscription {
+  id          String   @id @default(cuid())
+  orgId       String
+  url         String
+  events      String[]
+  secretHash  String
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  deliveries   WebhookDelivery[]
+
+  @@index([orgId])
+  @@map("webhook_subscriptions")
+}
+
+model WebhookDelivery {
+  id               String   @id @default(cuid())
+  webhookId        String
+  event            String
+  payload          Json
+  responseStatus   Int?
+  responseBody     String?
+  attemptCount     Int      @default(0)
+  deliveredAt      DateTime?
+  createdAt        DateTime @default(now())
+
+  webhook WebhookSubscription @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  @@index([webhookId])
+  @@map("webhook_deliveries")
+}

@@ -1,0 +1,1466 @@
+openapi: 3.1.0
+info:
+  title: Shoutboard API
+  version: 1.0.0
+  description: |
+    API-first employee recognition group card platform. Shoutboard enables teams to
+    create collaborative recognition cards for birthdays, promotions, farewells, and
+    other occasions with public shareable links and team contributions.
+
+    ## Key Features
+    - **Multi-occasion support**: Birthday, anniversary, promotion, welcome, farewell, custom
+    - **Public sharing**: Generate shareable links for public contribution
+    - **Team collaboration**: Collect messages from multiple contributors anonymously or identified
+    - **Webhook integrations**: Real-time event notifications for board creation, posting, and delivery
+    - **API-first design**: Full programmatic access with JWT or API key authentication
+    - **Analytics**: Track board engagement, contributor metrics, and team participation
+
+    ## Authentication Methods
+    The API supports two authentication methods:
+
+    ### JWT Bearer Token
+    Register and login to receive a JWT token valid for 7 days. Include in Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+
+    ### API Key
+    Create persistent API keys in the dashboard for service-to-service integrations.
+    Include in header:
+    ```
+    X-API-Key: sb_live_<random_string>
+    ```
+    API keys can be scoped to specific permissions and revoked at any time.
+
+    ## Webhook Events
+    Subscribe to real-time events:
+    - `board.created` - New board created
+    - `board.sent` - Board sent/published
+    - `post.created` - New message posted to board
+    - `post.deleted` - Message removed from board
+
+    Each webhook payload includes the event type and relevant resource data.
+
+    ## Rate Limiting
+    API calls are rate-limited to 100 requests per 15-minute window per API user.
+    Rate limit status is returned in response headers:
+    - `X-RateLimit-Limit`: 100
+    - `X-RateLimit-Remaining`: requests left
+    - `X-RateLimit-Reset`: Unix timestamp when limit resets
+
+    ## Error Responses
+    All errors return a consistent JSON structure:
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Human-readable error message"
+      }
+    }
+    ```
+
+    Common error codes:
+    - `NOT_FOUND` - Resource doesn't exist (404)
+    - `UNAUTHORIZED` - Invalid or missing credentials (401)
+    - `FORBIDDEN` - Insufficient permissions (403)
+    - `VALIDATION_ERROR` - Invalid request data (422)
+    - `CONFLICT` - Resource already exists (409)
+
+    ## API Versioning
+    Current API version is v1. Version is included in the path: `/v1/boards`, `/v1/posts`, etc.
+    New versions will be released as `/v2/...` when breaking changes occur.
+    Previous versions will be supported for 12 months.
+
+  contact:
+    name: Shoutboard Support
+    email: support@shoutboard.io
+    url: https://shoutboard.io/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.shoutboard.io/v1
+    description: Production API
+  - url: http://localhost:4000/v1
+    description: Local development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login or /auth/register
+
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for service-to-service authentication
+
+  schemas:
+    # Common models
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique organization ID (CUID)
+        name:
+          type: string
+          description: Organization display name
+        slug:
+          type: string
+          description: URL-safe organization identifier
+        plan:
+          type: string
+          enum: [STARTER, GROWTH, SCALE, ENTERPRISE]
+          description: Subscription plan tier
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, slug, plan, createdAt, updatedAt]
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [ADMIN, MEMBER]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, email, name, role, createdAt, updatedAt]
+
+    Board:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        slug:
+          type: string
+          description: Unique shareable URL slug
+        occasionType:
+          type: string
+          enum: [BIRTHDAY, ANNIVERSARY, FAREWELL, PROMOTION, WELCOME, CUSTOM]
+        status:
+          type: string
+          enum: [DRAFT, ACTIVE, SENT]
+          description: |
+            - DRAFT: Being edited, not yet shareable
+            - ACTIVE: Public and accepting contributions
+            - SENT: Delivery email sent to recipient
+        recipientName:
+          type: string
+        recipientEmail:
+          type: string
+          format: email
+        coverTheme:
+          type: string
+          description: Design theme (indigo, rose, amber, emerald, etc.)
+        postCount:
+          type: integer
+        viewCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        sentAt:
+          type: string
+          format: date-time
+          nullable: true
+        scheduledAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When to automatically send this board
+        creator:
+          type: object
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            email:
+              type: string
+      required: [id, title, slug, occasionType, status, recipientName, createdAt, creator]
+
+    Post:
+      type: object
+      properties:
+        id:
+          type: string
+        authorName:
+          type: string
+        contentText:
+          type: string
+          maxLength: 5000
+        mediaUrl:
+          type: string
+          format: uri
+          nullable: true
+        gifUrl:
+          type: string
+          format: uri
+          nullable: true
+        isAnonymous:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, authorName, contentText, isAnonymous, createdAt]
+
+    ApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prefix:
+          type: string
+          description: First 12 chars of key for display (e.g., sb_live_xxxxx)
+        scopes:
+          type: array
+          items:
+            type: string
+          example: [boards:read, boards:write]
+        lastUsedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        key:
+          type: string
+          description: Full API key (only returned on creation)
+      required: [id, name, prefix, scopes, createdAt]
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+            enum: [board.created, board.sent, post.created, post.deleted, '*']
+          description: Events to subscribe to, or '*' for all events
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        secret:
+          type: string
+          description: Signing secret (only returned on creation)
+      required: [id, url, events, active, createdAt]
+
+    WebhookDelivery:
+      type: object
+      properties:
+        id:
+          type: string
+        event:
+          type: string
+        responseStatus:
+          type: integer
+          nullable: true
+        attemptCount:
+          type: integer
+        deliveredAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+      required: [id, event, attemptCount, createdAt]
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+          required: [code, message]
+      required: [success, error]
+
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          enum: [true]
+        data:
+          type: object
+
+paths:
+  # Authentication Endpoints
+  /auth/register:
+    post:
+      summary: Register new organization and admin user
+      operationId: registerUser
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                orgName:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: Acme Corporation
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+                  example: Jane Smith
+                email:
+                  type: string
+                  format: email
+                  example: jane@acme.com
+                password:
+                  type: string
+                  minLength: 8
+                  format: password
+                  example: SecurePassword123!
+              required: [orgName, name, email, password]
+      responses:
+        201:
+          description: Organization and user created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        description: JWT token valid for 7 days
+                      user:
+                        $ref: '#/components/schemas/User'
+                      org:
+                        $ref: '#/components/schemas/Organization'
+                    required: [token, user, org]
+                required: [success, data]
+        422:
+          description: Validation error or email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: VALIDATION_ERROR
+                  message: Email already registered
+
+  /auth/login:
+    post:
+      summary: Login with email and password
+      operationId: loginUser
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jane@acme.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePassword123!
+              required: [email, password]
+      responses:
+        200:
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                      user:
+                        $ref: '#/components/schemas/User'
+                      org:
+                        $ref: '#/components/schemas/Organization'
+                required: [success, data]
+        401:
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                success: false
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: Invalid email or password
+
+  /auth/me:
+    get:
+      summary: Get current authenticated user
+      operationId: getCurrentUser
+      tags: [Authentication]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Current user information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/User'
+                      org:
+                        $ref: '#/components/schemas/Organization'
+                required: [success, data]
+        401:
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Board Endpoints
+  /v1/boards:
+    get:
+      summary: List boards for organization
+      operationId: listBoards
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, ACTIVE, SENT]
+          description: Filter by board status
+        - name: occasionType
+          in: query
+          schema:
+            type: string
+          description: Filter by occasion type
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      responses:
+        200:
+          description: List of boards
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      boards:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Board'
+                      pagination:
+                        type: object
+                        properties:
+                          limit:
+                            type: integer
+                          offset:
+                            type: integer
+                          total:
+                            type: integer
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      summary: Create a new board
+      operationId: createBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  example: Happy Birthday Sarah!
+                occasionType:
+                  type: string
+                  enum: [BIRTHDAY, ANNIVERSARY, FAREWELL, PROMOTION, WELCOME, CUSTOM]
+                recipientName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: Sarah Johnson
+                recipientEmail:
+                  type: string
+                  format: email
+                  example: sarah@example.com
+                coverTheme:
+                  type: string
+                  default: indigo
+                  example: rose
+                scheduledAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+                  description: When to automatically send (optional)
+              required: [title, occasionType, recipientName]
+      responses:
+        201:
+          description: Board created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Board'
+        422:
+          $ref: '#/components/responses/ValidationError'
+
+  /v1/boards/{id}:
+    get:
+      summary: Get board with posts
+      operationId: getBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Board details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Board'
+                      - type: object
+                        properties:
+                          posts:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Post'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+    patch:
+      summary: Update board details
+      operationId: updateBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                recipientName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                coverTheme:
+                  type: string
+                scheduledAt:
+                  type: string
+                  format: date-time
+                  nullable: true
+      responses:
+        200:
+          description: Board updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Board'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      summary: Delete a board
+      operationId: deleteBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Board deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  /v1/boards/{id}/send:
+    post:
+      summary: Send board to recipient
+      operationId: sendBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      description: |
+        Sets board status to SENT and sends delivery email if recipient email provided.
+        Triggers webhook events.
+      responses:
+        200:
+          description: Board sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Board'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  /v1/boards/{id}/schedule:
+    post:
+      summary: Schedule board to send later
+      operationId: scheduleBoard
+      tags: [Boards]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                scheduledAt:
+                  type: string
+                  format: date-time
+                  example: '2024-04-15T10:00:00Z'
+              required: [scheduledAt]
+      responses:
+        200:
+          description: Board scheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Board'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  /v1/boards/{slug}/public:
+    get:
+      summary: Get public board view (no auth required)
+      operationId: getPublicBoard
+      tags: [Boards]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Board slug (URL-safe identifier)
+      description: |
+        Publicly accessible board view. Only works for boards with status=SENT.
+        Records anonymous view count (hashed IP).
+      responses:
+        200:
+          description: Public board view
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      title:
+                        type: string
+                      recipientName:
+                        type: string
+                      occasionType:
+                        type: string
+                      coverTheme:
+                        type: string
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Post'
+                      viewCount:
+                        type: integer
+                      createdAt:
+                        type: string
+                        format: date-time
+                      creator:
+                        type: object
+        404:
+          description: Board not found or not public
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Post Endpoints
+  /v1/boards/{boardId}/posts:
+    get:
+      summary: List posts for a board
+      operationId: listPosts
+      tags: [Posts]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      description: Public endpoint for SENT boards, authenticated for DRAFT/ACTIVE.
+      responses:
+        200:
+          description: List of posts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      posts:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Post'
+                      pagination:
+                        type: object
+                        properties:
+                          limit:
+                            type: integer
+                          offset:
+                            type: integer
+                          total:
+                            type: integer
+
+    post:
+      summary: Add post to board
+      operationId: createPost
+      tags: [Posts]
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+      description: |
+        Public for SENT boards (no auth required), authenticated for DRAFT/ACTIVE boards.
+        Contributors can submit messages anonymously or identified.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authorName:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: John Smith
+                contentText:
+                  type: string
+                  minLength: 1
+                  maxLength: 5000
+                  example: "Happy birthday! Wishing you an amazing year ahead!"
+                mediaUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                gifUrl:
+                  type: string
+                  format: uri
+                  nullable: true
+                isAnonymous:
+                  type: boolean
+                  default: false
+              required: [authorName, contentText]
+      responses:
+        201:
+          description: Post created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Post'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+        422:
+          $ref: '#/components/responses/ValidationError'
+
+  /v1/boards/{boardId}/posts/{postId}:
+    delete:
+      summary: Delete a post
+      operationId: deletePost
+      tags: [Posts]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: boardId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: postId
+          in: path
+          required: true
+          schema:
+            type: string
+      description: Only board creator or admin can delete posts.
+      responses:
+        200:
+          description: Post deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  # API Key Endpoints
+  /v1/api-keys:
+    get:
+      summary: List API keys (admin only)
+      operationId: listApiKeys
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of API keys
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      keys:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ApiKey'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      summary: Create API key (admin only)
+      operationId: createApiKey
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  example: Production Integration
+                scopes:
+                  type: array
+                  items:
+                    type: string
+                  default: [boards:read, boards:write]
+                  example: [boards:read, boards:write, posts:read]
+              required: [name]
+      responses:
+        201:
+          description: API key created (full key returned once)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/ApiKey'
+                      - type: object
+                        properties:
+                          key:
+                            type: string
+                            description: Full API key - STORE THIS SECURELY
+                            example: sb_live_abc123def456xyz789
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+
+  /v1/api-keys/{id}:
+    delete:
+      summary: Revoke API key (admin only)
+      operationId: revokeApiKey
+      tags: [API Keys]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: API key revoked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      revokedAt:
+                        type: string
+                        format: date-time
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  # Webhook Endpoints
+  /v1/webhooks:
+    get:
+      summary: List webhook subscriptions (admin only)
+      operationId: listWebhooks
+      tags: [Webhooks]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: List of webhooks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      webhooks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Webhook'
+        401:
+          $ref: '#/components/responses/UnauthorizedError'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      summary: Create webhook subscription (admin only)
+      operationId: createWebhook
+      tags: [Webhooks]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: https://example.com/webhooks/shoutboard
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum: [board.created, board.sent, post.created, post.deleted, '*']
+                  minItems: 1
+                  example: [board.created, board.sent, post.created]
+              required: [url, events]
+      responses:
+        201:
+          description: Webhook created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Webhook'
+                      - type: object
+                        properties:
+                          secret:
+                            type: string
+                            description: Signing secret - store securely for verifying signatures
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        422:
+          $ref: '#/components/responses/ValidationError'
+
+  /v1/webhooks/{id}:
+    patch:
+      summary: Update webhook configuration (admin only)
+      operationId: updateWebhook
+      tags: [Webhooks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                active:
+                  type: boolean
+      responses:
+        200:
+          description: Webhook updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Webhook'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+    delete:
+      summary: Delete webhook subscription (admin only)
+      operationId: deleteWebhook
+      tags: [Webhooks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Webhook deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  /v1/webhooks/{id}/deliveries:
+    get:
+      summary: List webhook delivery attempts (admin only)
+      operationId: listWebhookDeliveries
+      tags: [Webhooks]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+            maximum: 100
+      description: View recent webhook delivery attempts and their status.
+      responses:
+        200:
+          description: List of deliveries
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      deliveries:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/WebhookDelivery'
+        403:
+          $ref: '#/components/responses/ForbiddenError'
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+  # Analytics Endpoints
+  /v1/analytics:
+    get:
+      summary: Get organization analytics
+      operationId: getOrgAnalytics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      description: High-level metrics for the organization.
+      responses:
+        200:
+          description: Organization analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      totalBoards:
+                        type: integer
+                        example: 42
+                      totalPosts:
+                        type: integer
+                        example: 156
+                      totalContributors:
+                        type: integer
+                        description: Unique identified contributors
+                        example: 34
+                      totalAnonymousContributions:
+                        type: integer
+                        example: 18
+                      boardsSentThisMonth:
+                        type: integer
+                        example: 8
+                      avgPostsPerBoard:
+                        type: number
+                        format: float
+                        example: 3.71
+
+  /v1/analytics/boards/{id}:
+    get:
+      summary: Get board-level analytics
+      operationId: getBoardAnalytics
+      tags: [Analytics]
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      description: Detailed metrics for a specific board.
+      responses:
+        200:
+          description: Board analytics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      viewCount:
+                        type: integer
+                      postCount:
+                        type: integer
+                      uniqueContributors:
+                        type: integer
+                      anonymousContributions:
+                        type: integer
+                      postsPerDay:
+                        type: object
+                        additionalProperties:
+                          type: integer
+                        description: Posts per day timeline
+                        example:
+                          '2024-03-20': 5
+                          '2024-03-21': 8
+                          '2024-03-22': 3
+                      boardStatus:
+                        type: string
+                        enum: [DRAFT, ACTIVE, SENT]
+                      createdAt:
+                        type: string
+                        format: date-time
+                      sentAt:
+                        type: string
+                        format: date-time
+                        nullable: true
+        404:
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  responses:
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: NOT_FOUND
+              message: Board not found
+
+    UnauthorizedError:
+      description: Authentication required or invalid token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: UNAUTHORIZED
+              message: Authentication required
+
+    ForbiddenError:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: FORBIDDEN
+              message: Insufficient permissions
+
+    ValidationError:
+      description: Invalid request data
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: VALIDATION_ERROR
+              message: Field validation failed
