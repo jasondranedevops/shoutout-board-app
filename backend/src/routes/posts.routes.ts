@@ -62,7 +62,7 @@ export const postsRoutes: FastifyPluginAsync = async (app) => {
           isAnonymous: true,
           createdAt: true,
         },
-        orderBy: { createdAt: 'asc' },
+        orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
         take: limit,
         skip: offset,
       })
@@ -156,6 +156,48 @@ export const postsRoutes: FastifyPluginAsync = async (app) => {
         }
         throw error
       }
+    }
+  )
+
+  // Reorder posts
+  app.post<{
+    Params: { boardId: string }
+    Body: { orderedIds: string[] }
+  }>(
+    '/v1/boards/:boardId/posts/reorder',
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        description: 'Reorder posts on a board',
+        tags: ['Posts'],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, reply) => {
+      const { orderedIds } = request.body
+
+      if (!Array.isArray(orderedIds) || orderedIds.length === 0) {
+        throw new ValidationError('orderedIds must be a non-empty array')
+      }
+
+      const board = await prisma.board.findFirst({
+        where: { id: request.params.boardId, orgId: request.org!.id },
+      })
+
+      if (!board) {
+        throw new NotFoundError('Board')
+      }
+
+      await prisma.$transaction(
+        orderedIds.map((id, index) =>
+          prisma.post.update({
+            where: { id },
+            data: { order: index },
+          })
+        )
+      )
+
+      return reply.send({ success: true, data: { orderedIds } })
     }
   )
 

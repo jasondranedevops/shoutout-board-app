@@ -1,0 +1,22 @@
+{
+  "name": "@shoutboard/sdk",
+  "version": "0.1.0",
+  "description": "Official JavaScript/TypeScript SDK for the Shoutboard API",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch"
+  },
+  "keywords": ["shoutboard", "recognition", "employee", "sdk"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.3",
+    "tsup": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

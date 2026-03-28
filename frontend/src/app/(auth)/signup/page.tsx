@@ -42,10 +42,10 @@ export default function SignupPage() {
     try {
       setApiError(null)
       const response = await apiClient.post<AuthResponse>(
-        '/api/auth/signup',
+        '/auth/register',
         data
       )
-      const { token, user, org } = response.data
+      const { token, user, org } = response.data.data
       login(token, user, org)
       router.push('/dashboard')
     } catch (error: unknown) {

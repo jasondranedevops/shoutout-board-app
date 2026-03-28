@@ -3,7 +3,13 @@ import bcrypt from 'bcryptjs'
 
 async function seed() {
   try {
-    // Clear existing data
+    // Clear existing data in dependency order
+    await prisma.webhookDelivery.deleteMany()
+    await prisma.webhookSubscription.deleteMany()
+    await prisma.boardView.deleteMany()
+    await prisma.post.deleteMany()
+    await prisma.board.deleteMany()
+    await prisma.apiKey.deleteMany()
     await prisma.user.deleteMany()
     await prisma.organization.deleteMany()
 

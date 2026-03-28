@@ -5,6 +5,7 @@ import { generateBoardSlug } from '@/utils/slugify'
 import { NotFoundError, ForbiddenError, ValidationError } from '@/utils/errors'
 import { dispatchWebhook } from '@/services/webhook.service'
 import { sendBoardDeliveryEmail } from '@/services/email.service'
+import { notifySlackBoardSent, notifySlackBoardCreated } from '@/services/slack.service'
 import crypto from 'crypto'
 
 const CreateBoardSchema = z.object({
@@ -356,6 +357,15 @@ export const boardsRoutes: FastifyPluginAsync = async (app) => {
         sentAt: updated.sentAt,
       })
 
+      // Notify Slack
+      const postCount = await prisma.post.count({ where: { boardId: board.id } })
+      await notifySlackBoardSent(request.org!.id, {
+        title: board.title,
+        recipientName: board.recipientName,
+        slug: board.slug,
+        postCount,
+      })
+
       return reply.send({
         success: true,
         data: updated,
@@ -417,6 +427,42 @@ export const boardsRoutes: FastifyPluginAsync = async (app) => {
     }
   )
 
+  // Activate board (make share link live)
+  app.post<{ Params: { id: string } }>(
+    '/v1/boards/:id/activate',
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        description: 'Activate a board so the share link is live for contributions',
+        tags: ['Boards'],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, reply) => {
+      const board = await prisma.board.findFirst({
+        where: { id: request.params.id, orgId: request.org!.id },
+      })
+
+      if (!board) {
+        throw new NotFoundError('Board')
+      }
+
+      if (
+        board.creatorId !== request.user!.id &&
+        request.user!.role !== 'ADMIN'
+      ) {
+        throw new ForbiddenError()
+      }
+
+      const updated = await prisma.board.update({
+        where: { id: request.params.id },
+        data: { status: 'ACTIVE' },
+      })
+
+      return reply.send({ success: true, data: updated })
+    }
+  )
+
   // Get board public
   app.get<{ Params: { slug: string } }>(
     '/v1/boards/:slug/public',
@@ -450,7 +496,12 @@ export const boardsRoutes: FastifyPluginAsync = async (app) => {
         },
       })
 
-      if (!board || board.status !== 'SENT') {
+      if (!board || (board.status !== 'SENT' && board.status !== 'ACTIVE')) {
+        throw new NotFoundError('Board')
+      }
+
+      // If scheduled, only allow access once the scheduled time has passed
+      if (board.scheduledAt && new Date(board.scheduledAt) > new Date()) {
         throw new NotFoundError('Board')
       }
 

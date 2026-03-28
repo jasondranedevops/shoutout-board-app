@@ -19,13 +19,11 @@ export function useBoards(page: number = 1, pageSize: number = 12) {
   return useQuery({
     queryKey: [...boardKeys.lists(), page, pageSize],
     queryFn: async () => {
-      const response = await apiClient.get<PaginatedResponse<Board>>(
-        '/api/boards',
-        {
-          params: { page, pageSize },
-        }
+      const response = await apiClient.get<any>(
+        '/v1/boards',
+        { params: { limit: pageSize, offset: (page - 1) * pageSize } }
       )
-      return response.data
+      return response.data.data ?? response.data
     },
   })
 }
@@ -37,8 +35,8 @@ export function useBoard(id: string) {
   return useQuery({
     queryKey: boardKeys.detail(id),
     queryFn: async () => {
-      const response = await apiClient.get<Board>(`/api/boards/${id}`)
-      return response.data
+      const response = await apiClient.get<any>(`/v1/boards/${id}`)
+      return response.data.data ?? response.data
     },
     enabled: !!id,
   })
@@ -52,16 +50,11 @@ export function useCreateBoard() {
 
   return useMutation({
     mutationFn: async (boardData: Partial<Board>) => {
-      const response = await apiClient.post<Board>(
-        '/api/boards',
-        boardData
-      )
-      return response.data
+      const response = await apiClient.post<any>('/v1/boards', boardData)
+      return response.data.data ?? response.data
     },
     onSuccess: (data) => {
-      // Invalidate boards list to refetch
       queryClient.invalidateQueries({ queryKey: boardKeys.lists() })
-      // Add new board to cache
       queryClient.setQueryData(boardKeys.detail(data.id), data)
     },
   })
@@ -75,11 +68,8 @@ export function useUpdateBoard(boardId: string) {
 
   return useMutation({
     mutationFn: async (updates: Partial<Board>) => {
-      const response = await apiClient.patch<Board>(
-        `/api/boards/${boardId}`,
-        updates
-      )
-      return response.data
+      const response = await apiClient.patch<any>(`/v1/boards/${boardId}`, updates)
+      return response.data.data ?? response.data
     },
     onSuccess: (data) => {
       queryClient.setQueryData(boardKeys.detail(boardId), data)
@@ -96,11 +86,8 @@ export function useSendBoard(boardId: string) {
 
   return useMutation({
     mutationFn: async (options?: { scheduleFor?: string }) => {
-      const response = await apiClient.post<Board>(
-        `/api/boards/${boardId}/send`,
-        options
-      )
-      return response.data
+      const response = await apiClient.post<any>(`/v1/boards/${boardId}/send`, options)
+      return response.data.data ?? response.data
     },
     onSuccess: (data) => {
       queryClient.setQueryData(boardKeys.detail(boardId), data)
@@ -117,7 +104,7 @@ export function useDeleteBoard() {
 
   return useMutation({
     mutationFn: async (boardId: string) => {
-      await apiClient.delete(`/api/boards/${boardId}`)
+      await apiClient.delete(`/v1/boards/${boardId}`)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: boardKeys.lists() })

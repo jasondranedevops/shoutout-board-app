@@ -15,10 +15,13 @@ model Organization {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users       User[]
-  boards      Board[]
-  apiKeys     ApiKey[]
-  webhooks    WebhookSubscription[]
+  users           User[]
+  boards          Board[]
+  apiKeys         ApiKey[]
+  webhooks        WebhookSubscription[]
+  employees         Employee[]
+  milestoneConfig   MilestoneConfig?
+  slackInstallation SlackInstallation?
 
   @@map("organizations")
 }
@@ -103,6 +106,7 @@ model Post {
   mediaUrl    String?
   gifUrl      String?
   isAnonymous Boolean  @default(false)
+  order       Int      @default(0)
   createdAt   DateTime @default(now())
 
   board  Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
@@ -155,6 +159,56 @@ model WebhookSubscription {
 
   @@index([orgId])
   @@map("webhook_subscriptions")
+}
+
+model Employee {
+  id            String    @id @default(cuid())
+  orgId         String
+  name          String
+  email         String?
+  department    String?
+  birthday      DateTime? // month/day used; year is ignored
+  hireDate      DateTime? // used for work anniversary
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@map("employees")
+}
+
+model MilestoneConfig {
+  id                  String   @id @default(cuid())
+  orgId               String   @unique
+  birthdayEnabled     Boolean  @default(true)
+  anniversaryEnabled  Boolean  @default(true)
+  daysAhead           Int      @default(7)   // how many days before to create board
+  autoActivate        Boolean  @default(true) // activate share link automatically
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@map("milestone_configs")
+}
+
+model SlackInstallation {
+  id              String   @id @default(cuid())
+  orgId           String   @unique
+  teamId          String
+  teamName        String
+  botToken        String
+  botUserId       String
+  incomingChannel String?  // default channel for notifications
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([teamId])
+  @@map("slack_installations")
 }
 
 model WebhookDelivery {

@@ -1,22 +1,45 @@
 /**
- * Board detail/edit view
+ * Board detail/edit view — with drag-and-drop post reordering
  */
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useBoard } from '@/src/hooks/useBoards'
+import { useBoard, useSendBoard } from '@/src/hooks/useBoards'
 import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Badge } from '@/src/components/ui/Badge'
-import { Copy, Share2, Send } from 'lucide-react'
+import { Copy, Share2, Send, GripVertical, Trash2 } from 'lucide-react'
+import apiClient from '@/src/lib/api'
+import { Post } from '@/src/types'
 
 export default function BoardDetailPage() {
   const params = useParams()
   const boardId = params.id as string
-  const { data: board, isLoading } = useBoard(boardId)
+  const { data: board, isLoading, refetch } = useBoard(boardId)
+  const sendBoardMutation = useSendBoard(boardId)
+
   const [copiedLink, setCopiedLink] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Drag-and-drop state
+  const [posts, setPosts] = useState<Post[] | null>(null)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const [isSavingOrder, setIsSavingOrder] = useState(false)
+  const dragItem = useRef<string | null>(null)
+
+  // Sync posts from board data when it loads (and when not mid-drag)
+  const boardPosts: Post[] = (board as any)?.posts ?? []
+  const activePosts = posts ?? boardPosts
+
+  // Initialise local posts once board loads
+  React.useEffect(() => {
+    if (board && posts === null) {
+      setPosts((board as any).posts ?? [])
+    }
+  }, [board])
 
   if (isLoading) {
     return (
@@ -48,7 +71,8 @@ export default function BoardDetailPage() {
     )
   }
 
-  const publicUrl = `${process.env.NEXT_PUBLIC_APP_URL}/b/${board.slug}`
+  const appUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+  const publicUrl = `${appUrl}/b/${(board as any).slug}`
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(publicUrl)
@@ -56,30 +80,90 @@ export default function BoardDetailPage() {
     setTimeout(() => setCopiedLink(false), 2000)
   }
 
-  // Mock posts for demo
-  const mockPosts = [
-    {
-      id: '1',
-      boardId: boardId,
-      authorName: 'Alice Johnson',
-      authorId: 'user-1',
-      contentText: 'Congratulations on the promotion! You deserve it! 🎉',
-      isAnonymous: false,
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: '2',
-      boardId: boardId,
-      authorName: 'Bob Smith',
-      authorId: 'user-2',
-      contentText: 'What an amazing journey! Wishing you all the best in your new role.',
-      isAnonymous: false,
-      createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    },
-  ]
+  const handleSend = async () => {
+    setError(null)
+    try {
+      await sendBoardMutation.mutateAsync()
+      await refetch()
+    } catch (err: any) {
+      setError(err?.response?.data?.error?.message || 'Failed to send board. Please try again.')
+    }
+  }
+
+  const handleDeletePost = async (postId: string) => {
+    setError(null)
+    try {
+      await apiClient.delete(`/v1/boards/${boardId}/posts/${postId}`)
+      setPosts((prev) => (prev ?? boardPosts).filter((p) => p.id !== postId))
+    } catch (err: any) {
+      setError(err?.response?.data?.error?.message || 'Failed to delete post.')
+    }
+  }
+
+  // ── Drag-and-drop handlers ──────────────────────────────────────────────────
+
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    dragItem.current = id
+    setDraggingId(id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    if (id !== dragItem.current) {
+      setDragOverId(id)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault()
+    if (!dragItem.current || dragItem.current === targetId) return
+
+    setPosts((prev) => {
+      const list = [...(prev ?? boardPosts)]
+      const fromIdx = list.findIndex((p) => p.id === dragItem.current)
+      const toIdx = list.findIndex((p) => p.id === targetId)
+      if (fromIdx === -1 || toIdx === -1) return list
+      const [moved] = list.splice(fromIdx, 1)
+      list.splice(toIdx, 0, moved)
+      return list
+    })
+
+    setDraggingId(null)
+    setDragOverId(null)
+  }
+
+  const handleDragEnd = async () => {
+    setDraggingId(null)
+    setDragOverId(null)
+
+    if (!posts) return
+    setIsSavingOrder(true)
+    try {
+      await apiClient.post(`/v1/boards/${boardId}/posts/reorder`, {
+        orderedIds: posts.map((p) => p.id),
+      })
+    } catch (err: any) {
+      setError('Failed to save post order. Please try again.')
+    } finally {
+      setIsSavingOrder(false)
+    }
+  }
+
+  // ────────────────────────────────────────────────────────────────────────────
+
+  const boardStatus = (board as any).status
 
   return (
     <div className="section-container">
+      {error && (
+        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+          <p className="font-medium">Something went wrong</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <div className="card p-6">
@@ -93,11 +177,11 @@ export default function BoardDetailPage() {
                 For <span className="font-medium">{board.recipientName}</span>
               </p>
               <p className="mt-1 text-sm text-gray-500">
-                {board.contributorCount} contributors • {board.postCount} messages
+                {activePosts.length} message{activePosts.length !== 1 ? 's' : ''} •{' '}
+                {(board as any).viewCount ?? 0} views
               </p>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-shrink-0 gap-3">
               <Button
                 variant="outline"
@@ -106,42 +190,104 @@ export default function BoardDetailPage() {
               >
                 {copiedLink ? 'Copied!' : 'Copy Link'}
               </Button>
-              <Button
-                variant="primary"
-                icon={<Send size={18} />}
-              >
-                Send Board
-              </Button>
+              {boardStatus !== 'SENT' && (
+                <Button
+                  variant="primary"
+                  onClick={handleSend}
+                  isLoading={sendBoardMutation.isPending}
+                  icon={<Send size={18} />}
+                >
+                  Send Board
+                </Button>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Share info */}
-      <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <div className="flex items-center gap-2">
-          <Share2 size={18} className="text-blue-600" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-blue-900">Share this board</p>
-            <p className="text-xs text-blue-700">{publicUrl}</p>
+      {boardStatus !== 'DRAFT' && (
+        <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-4">
+          <div className="flex items-center gap-2">
+            <Share2 size={18} className="text-blue-600" />
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900">
+                {boardStatus === 'SENT'
+                  ? 'Board has been sent'
+                  : 'Share this link to collect messages'}
+              </p>
+              <p className="text-xs text-blue-700 break-all">{publicUrl}</p>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {boardStatus === 'DRAFT' && (
+        <div className="mb-8 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
+          <p className="text-sm font-medium text-yellow-900">
+            This board is a draft. Click <strong>Send Board</strong> to deliver it to the
+            recipient and make the share link live.
+          </p>
+        </div>
+      )}
 
       {/* Posts */}
       <div>
-        <h2 className="mb-4 text-xl font-semibold text-gray-900">Messages</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-gray-900">Messages</h2>
+          {isSavingOrder && (
+            <span className="text-sm text-gray-500 animate-pulse">Saving order…</span>
+          )}
+          {activePosts.length > 1 && !isSavingOrder && (
+            <span className="text-sm text-gray-400">Drag to reorder</span>
+          )}
+        </div>
 
-        {mockPosts.length === 0 ? (
+        {activePosts.length === 0 ? (
           <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
             <p className="text-gray-600">
               No messages yet. Share the link to start gathering contributions!
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {mockPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
+          <div className="space-y-3">
+            {activePosts.map((post) => (
+              <div
+                key={post.id}
+                draggable
+                onDragStart={(e) => handleDragStart(e, post.id)}
+                onDragOver={(e) => handleDragOver(e, post.id)}
+                onDrop={(e) => handleDrop(e, post.id)}
+                onDragEnd={handleDragEnd}
+                className={`group relative flex items-start gap-3 rounded-xl transition-all duration-150 ${
+                  draggingId === post.id
+                    ? 'opacity-40 scale-[0.98]'
+                    : dragOverId === post.id
+                    ? 'ring-2 ring-indigo-400 ring-offset-2'
+                    : ''
+                }`}
+              >
+                {/* Drag handle */}
+                <div className="mt-5 flex-shrink-0 cursor-grab opacity-0 group-hover:opacity-100 transition-opacity active:cursor-grabbing">
+                  <GripVertical size={20} className="text-gray-400" />
+                </div>
+
+                {/* Post card */}
+                <div className="min-w-0 flex-1">
+                  <PostCard post={post} />
+                </div>
+
+                {/* Delete button */}
+                {boardStatus !== 'SENT' && (
+                  <button
+                    onClick={() => handleDeletePost(post.id)}
+                    className="mt-5 flex-shrink-0 rounded-lg p-1.5 text-gray-400 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-500 group-hover:opacity-100"
+                    title="Remove message"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
             ))}
           </div>
         )}

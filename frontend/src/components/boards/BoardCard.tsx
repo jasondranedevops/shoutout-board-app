@@ -32,7 +32,7 @@ const themeGradients: Record<string, string> = {
 }
 
 export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
-  const emoji = occasionEmojis[board.occasionType] || '💌'
+  const emoji = occasionEmojis[board.occasionType?.toLowerCase()] || '💌'
   const gradient = themeGradients[board.coverTheme] || themeGradients.indigo
 
   // Calculate time since creation
@@ -84,7 +84,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Users size={16} />
               <span>
-                {board.contributorCount} contributor{board.contributorCount !== 1 ? 's' : ''}
+                {(board as any).viewCount ?? 0} view{((board as any).viewCount ?? 0) !== 1 ? 's' : ''}
               </span>
             </div>
             <div className="flex items-center gap-2 text-sm text-gray-500">

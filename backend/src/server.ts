@@ -10,6 +10,8 @@ import pino from 'pino'
 
 // Plugins
 import { authPlugin } from '@/plugins/auth.plugin'
+import { startScheduler } from '@/services/scheduler.service'
+import { startMilestoneScheduler } from '@/services/milestone.service'
 
 // Routes
 import { authRoutes } from '@/routes/auth.routes'
@@ -109,6 +111,8 @@ async function main() {
     await app.register(apiKeysRoutes)
     await app.register(webhooksRoutes)
     await app.register(analyticsRoutes)
+    await app.register((await import('@/routes/employees.routes')).employeesRoutes)
+    await app.register((await import('@/routes/slack.routes')).slackRoutes)
 
     // Health check
     app.get('/health', async () => {
@@ -119,6 +123,11 @@ async function main() {
     await app.listen({ port: PORT, host: HOST })
     logger.info(`Server listening at http://${HOST}:${PORT}`)
     logger.info(`Swagger docs available at http://${HOST}:${PORT}/docs`)
+
+    // Start scheduled board auto-send (checks every 60s)
+    startScheduler()
+    // Start milestone auto-board creation (checks every hour)
+    startMilestoneScheduler()
   } catch (err) {
     logger.error(err)
     process.exit(1)

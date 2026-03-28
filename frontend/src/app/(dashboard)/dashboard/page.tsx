@@ -13,7 +13,7 @@ import { Plus } from 'lucide-react'
 export default function DashboardPage() {
   const { data: boardsData, isLoading, error } = useBoards()
 
-  const boards = boardsData?.data || []
+  const boards = boardsData?.boards || boardsData?.data || []
 
   return (
     <div className="section-container">

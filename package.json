@@ -1,20 +1,24 @@
 {
-  "name": "shoutout-board-app",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "shoutboard",
+  "version": "0.1.0",
+  "description": "API-first employee recognition platform",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "setup": "bash setup.sh",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:reset": "docker compose down -v && docker compose up -d",
+    "dev:api": "cd backend && npm run dev",
+    "dev:web": "cd frontend && npm run dev",
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "migrate": "cd backend && npx prisma migrate dev",
+    "seed": "cd backend && npx tsx src/db/seed.ts",
+    "studio": "cd backend && npx prisma studio"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jasondranedevops/shoutout-board-app.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/jasondranedevops/shoutout-board-app/issues"
-  },
-  "homepage": "https://github.com/jasondranedevops/shoutout-board-app#readme"
+  "author": "Jason Drane",
+  "license": "MIT"
 }

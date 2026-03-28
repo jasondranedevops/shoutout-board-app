@@ -1,10 +1,10 @@
+import fp from 'fastify-plugin'
 import { FastifyPluginAsync } from 'fastify'
 import { prisma } from '@/db/client'
 import { hashApiKey } from '@/utils/api-key'
 import { UnauthorizedError } from '@/utils/errors'
-import crypto from 'crypto'
 
-export const authPlugin: FastifyPluginAsync = async (app) => {
+const plugin: FastifyPluginAsync = async (app) => {
   // JWT authentication decorator
   app.decorate('authenticate', async function (request: any) {
     try {
@@ -89,3 +89,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     }
   )
 }
+
+// fp() skips Fastify's plugin encapsulation so authenticate/authenticateApiKey
+// decorators are available to all sibling route plugins
+export const authPlugin = fp(plugin)

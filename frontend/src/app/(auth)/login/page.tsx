@@ -40,10 +40,10 @@ export default function LoginPage() {
     try {
       setApiError(null)
       const response = await apiClient.post<AuthResponse>(
-        '/api/auth/login',
+        '/auth/login',
         data
       )
-      const { token, user, org } = response.data
+      const { token, user, org } = response.data.data
       login(token, user, org)
       router.push('/dashboard')
     } catch (error: unknown) {

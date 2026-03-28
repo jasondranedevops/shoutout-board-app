@@ -12,6 +12,7 @@ import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { useCreateBoard } from '@/src/hooks/useBoards'
 import { OccasionType } from '@/src/types'
+import apiClient from '@/src/lib/api'
 
 // Step 1 schema
 const step1Schema = z.object({
@@ -74,6 +75,7 @@ export default function NewBoardPage() {
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null)
   const [step2Data, setStep2Data] = useState<Step2Data | null>(null)
   const createBoardMutation = useCreateBoard()
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Step 1 form
   const step1Form = useForm<Step1Data>({
@@ -115,9 +117,10 @@ export default function NewBoardPage() {
   const handleStep3Submit = async (data: Step3Data) => {
     if (!step1Data || !step2Data) return
 
+    setSubmitError(null)
     try {
       const boardData = {
-        occasionType: step1Data.occasionType as OccasionType,
+        occasionType: step1Data.occasionType.toUpperCase() as any,
         recipientName: step1Data.recipientName,
         recipientEmail: step1Data.recipientEmail || undefined,
         title: step2Data.title,
@@ -125,9 +128,23 @@ export default function NewBoardPage() {
       }
 
       const result = await createBoardMutation.mutateAsync(boardData)
+
+      if (data.sendOption === 'now') {
+        // Send immediately — marks SENT and makes link live
+        await apiClient.post(`/v1/boards/${result.id}/send`)
+      } else if (data.sendOption === 'schedule' && data.scheduledAt) {
+        // Schedule for a future date — link goes live at that time
+        await apiClient.post(`/v1/boards/${result.id}/schedule`, {
+          scheduledAt: new Date(data.scheduledAt).toISOString(),
+        })
+      } else if (data.sendOption === 'link') {
+        // Activate immediately for contribution gathering
+        await apiClient.post(`/v1/boards/${result.id}/activate`)
+      }
+
       router.push(`/boards/${result.id}`)
-    } catch (error) {
-      console.error('Failed to create board:', error)
+    } catch (error: any) {
+      setSubmitError(error?.response?.data?.error?.message || 'Failed to create board. Please try again.')
     }
   }
 
@@ -298,6 +315,13 @@ export default function NewBoardPage() {
               <p className="font-medium text-gray-900">{step1Data?.recipientName}</p>
             </div>
           </div>
+
+          {submitError && (
+            <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+              <p className="font-medium">Something went wrong</p>
+              <p className="text-sm">{submitError}</p>
+            </div>
+          )}
 
           <form onSubmit={step3Form.handleSubmit(handleStep3Submit)} className="space-y-6">
             {/* Send option */}

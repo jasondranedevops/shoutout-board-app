@@ -6,7 +6,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Zap, BarChart3, Settings, Key, LogOut } from 'lucide-react'
+import { Zap, BarChart3, Settings, Key, LogOut, BookOpen, Users, Plug } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuthStore } from '@/src/store/auth.store'
 
@@ -26,6 +26,16 @@ export const Sidebar: React.FC = () => {
       icon: BarChart3,
     },
     {
+      label: 'Employees',
+      href: '/employees',
+      icon: Users,
+    },
+    {
+      label: 'Integrations',
+      href: '/integrations',
+      icon: Plug,
+    },
+    {
       label: 'API Keys',
       href: '/api-keys',
       icon: Key,
@@ -34,6 +44,11 @@ export const Sidebar: React.FC = () => {
       label: 'Settings',
       href: '/settings',
       icon: Settings,
+    },
+    {
+      label: 'API Docs',
+      href: '/docs',
+      icon: BookOpen,
     },
   ]
 
