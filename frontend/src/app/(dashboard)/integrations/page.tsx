@@ -185,7 +185,10 @@ export default function IntegrationsPage() {
             <div className="space-y-1.5 text-sm">
               {[
                 { cmd: '/shoutboard list', desc: 'Show recent boards' },
-                { cmd: '/shoutboard create "Title" for Name', desc: 'Create and share a board' },
+                { cmd: '/shoutboard create "Title" for Name', desc: 'Create a board (open immediately)' },
+                { cmd: '/shoutboard create "Title" for Name on Dec 25', desc: 'Create & schedule send date' },
+                { cmd: '/shoutboard create "Title" for Name on Dec 25 at 9am', desc: 'Create with date & time' },
+                { cmd: '/shoutboard schedule "Title" on Dec 25 at 9am', desc: 'Set/update send date on existing board' },
                 { cmd: '/shoutboard help', desc: 'Show all commands' },
               ].map(({ cmd, desc }) => (
                 <div key={cmd} className="flex items-baseline gap-2">
@@ -195,6 +198,13 @@ export default function IntegrationsPage() {
                   <span className="text-gray-500">{desc}</span>
                 </div>
               ))}
+            <p className="mt-3 text-xs text-gray-400">
+              Date formats: <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">Dec 25</code>{' '}
+              <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">12/25</code>{' '}
+              <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">2026-12-25</code>{' '}
+              · Time: <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">at 9am</code>{' '}
+              <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">at 2:30pm</code>
+            </p>
             </div>
           </div>
         )}
