@@ -15,6 +15,13 @@ interface SlackInstallation {
   createdAt: string
 }
 
+interface ZoomInstallation {
+  id: string
+  accountId: string
+  accountName: string | null
+  createdAt: string
+}
+
 export default function IntegrationsPage() {
   const { org } = useAuthStore()
   const qc = useQueryClient()
@@ -25,12 +32,34 @@ export default function IntegrationsPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const slack = params.get('slack')
-    if (slack) {
+    const zoom = params.get('zoom')
+    if (slack || zoom) {
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname)
       if (slack === 'success') qc.invalidateQueries({ queryKey: ['slack-status'] })
+      if (zoom === 'success') qc.invalidateQueries({ queryKey: ['zoom-status'] })
     }
   }, [qc])
+
+  const { data: zoomData } = useQuery({
+    queryKey: ['zoom-status'],
+    queryFn: async () => {
+      const res = await apiClient.get('/v1/zoom/status')
+      return res.data.data.installation as ZoomInstallation | null
+    },
+  })
+
+  const zoomInstallation = zoomData ?? null
+
+  const handleConnectZoom = async () => {
+    const res = await apiClient.get('/v1/zoom/oauth/install-url')
+    window.location.href = res.data.data.url
+  }
+
+  const disconnectZoomMutation = useMutation({
+    mutationFn: () => apiClient.delete('/v1/zoom'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['zoom-status'] }),
+  })
 
   const { data: slackData, isLoading } = useQuery({
     queryKey: ['slack-status'],
@@ -210,10 +239,107 @@ export default function IntegrationsPage() {
         )}
       </div>
 
+      {/* Zoom */}
+      <div className="card p-6 mb-6">
+        <div className="flex items-start justify-between gap-6">
+          <div className="flex items-start gap-4">
+            {/* Zoom logo */}
+            <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-[#2D8CFF] flex items-center justify-center">
+              <svg viewBox="0 0 24 24" className="h-7 w-7 fill-white" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4.5 8.25A3.75 3.75 0 0 1 8.25 4.5h7.5A3.75 3.75 0 0 1 19.5 8.25v7.5a3.75 3.75 0 0 1-3.75 3.75h-7.5A3.75 3.75 0 0 1 4.5 15.75v-7.5zm13.875 1.688-3.375 2.25v3.124l3.375 2.25a.375.375 0 0 0 .375 0 .375.375 0 0 0 .188-.329V10.266a.375.375 0 0 0-.188-.328.375.375 0 0 0-.375 0z"/>
+              </svg>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-gray-900">Zoom Team Chat</h2>
+                {zoomInstallation ? (
+                  <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                    <CheckCircle size={12} /> Connected
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                    <XCircle size={12} /> Not connected
+                  </span>
+                )}
+              </div>
+              <p className="mt-1 text-sm text-gray-500">
+                Create boards with <code className="rounded bg-gray-100 px-1 text-xs">/shoutboard</code> directly in Zoom Team Chat.
+              </p>
+
+              {zoomInstallation && (
+                <p className="mt-1 text-sm text-gray-600">
+                  Connected to <strong>{zoomInstallation.accountName || zoomInstallation.accountId}</strong>
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="flex-shrink-0">
+            {zoomInstallation ? (
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Trash2 size={14} />}
+                isLoading={disconnectZoomMutation.isPending}
+                onClick={() => {
+                  if (confirm('Disconnect Zoom from Shoutboard?')) {
+                    disconnectZoomMutation.mutate()
+                  }
+                }}
+              >
+                Disconnect
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<ExternalLink size={14} />}
+                onClick={handleConnectZoom}
+              >
+                Connect Zoom
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Slash command reference — only show when connected */}
+        {zoomInstallation && (
+          <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Slash commands
+            </p>
+            <div className="space-y-1.5 text-sm">
+              {[
+                { cmd: '/shoutboard list', desc: 'Show recent boards' },
+                { cmd: '/shoutboard create "Title" for Name', desc: 'Create a board (open immediately)' },
+                { cmd: '/shoutboard create "Title" for Name on Dec 25', desc: 'Create & schedule send date' },
+                { cmd: '/shoutboard create "Title" for Name on Dec 25 at 9am', desc: 'Create with date & time' },
+                { cmd: '/shoutboard schedule "Title" on Dec 25 at 9am', desc: 'Set/update send date on existing board' },
+                { cmd: '/shoutboard help', desc: 'Show all commands' },
+              ].map(({ cmd, desc }) => (
+                <div key={cmd} className="flex items-baseline gap-2">
+                  <code className="rounded bg-white border border-gray-200 px-1.5 py-0.5 text-xs font-mono text-gray-800 whitespace-nowrap">
+                    {cmd}
+                  </code>
+                  <span className="text-gray-500">{desc}</span>
+                </div>
+              ))}
+              <p className="mt-3 text-xs text-gray-400">
+                Date formats: <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">Dec 25</code>{' '}
+                <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">12/25</code>{' '}
+                <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">2026-12-25</code>{' '}
+                · Time: <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">at 9am</code>{' '}
+                <code className="rounded bg-white border border-gray-200 px-1 text-xs font-mono text-gray-600">at 2:30pm</code>
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Coming soon cards */}
       {[
         { name: 'MS Teams', color: '#464EB8', desc: 'Create boards and get notified directly in Teams channels.' },
-        { name: 'Zoom', color: '#2D8CFF', desc: 'Trigger recognition boards from Zoom meeting events.' },
       ].map((integration) => (
         <div key={integration.name} className="card p-6 mb-6 opacity-60">
           <div className="flex items-center gap-4">

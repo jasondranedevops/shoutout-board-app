@@ -129,6 +129,7 @@ async function main() {
     await app.register(analyticsRoutes)
     await app.register((await import('@/routes/employees.routes')).employeesRoutes)
     await app.register((await import('@/routes/slack.routes')).slackRoutes)
+    await app.register((await import('@/routes/zoom.routes')).zoomRoutes)
 
     // Health check — exempt from rate limiting so k8s probes never get 429
     app.get('/health', { config: { rateLimit: false } }, async () => {
