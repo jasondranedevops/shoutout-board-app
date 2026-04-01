@@ -578,13 +578,21 @@ export default function IntegrationsPage() {
         {showZoomConfigForm && !zoomInstallation && (
           <div className="mt-6 border-t border-gray-100 pt-6">
             <h3 className="mb-1 text-sm font-semibold text-gray-800">Zoom app credentials</h3>
-            <p className="mb-4 text-sm text-gray-500">
-              Create a Zoom app at{' '}
+            <p className="mb-3 text-sm text-gray-500">
+              Create a General App at{' '}
               <a href="https://marketplace.zoom.us" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
                 marketplace.zoom.us
               </a>
-              , then enter your credentials below.
+              {' '}then enter your credentials below.
             </p>
+            {/* Webhook URL callout */}
+            <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
+              <p className="mb-1 font-semibold">Webhook endpoint URL (enter this in your Zoom app → Access → Event Subscription)</p>
+              <code className="break-all font-mono">
+                {process.env.NEXT_PUBLIC_API_URL || 'https://shoutout-api.figtree-development.net'}/api/zoom/commands/{org?.id}
+              </code>
+              <p className="mt-1 text-blue-600">Subscribe to the <strong>Team Chat DM Message Posted</strong> event.</p>
+            </div>
             {zoomAppConfig && (
               <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                 Credentials already saved (Client ID: <strong>{zoomAppConfig.clientId}</strong>). Enter new values to update.
@@ -632,13 +640,13 @@ export default function IntegrationsPage() {
               </div>
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="zoom-verification-token">
-                  Verification Token <span className="font-normal text-gray-400">(optional)</span>
+                  Secret Token <span className="font-normal text-gray-400">(from Zoom app → Access page)</span>
                 </label>
                 <PasswordInput
                   id="zoom-verification-token"
                   value={zoomConfigForm.verificationToken}
                   onChange={(v) => setZoomConfigForm((f) => ({ ...f, verificationToken: v }))}
-                  placeholder="abcdef1234567890"
+                  placeholder="GicD_h99T2WiseEhj3VzXw"
                 />
               </div>
             </div>
@@ -678,12 +686,13 @@ export default function IntegrationsPage() {
           </div>
         )}
 
-        {/* Slash command reference — only show when connected */}
+        {/* DM command reference — only show when connected */}
         {zoomInstallation && (
           <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50 p-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-              Slash commands
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-500">
+              Bot commands
             </p>
+            <p className="mb-3 text-xs text-gray-400">DM the Shoutboard bot in Zoom Team Chat with any of these commands:</p>
             <div className="space-y-1.5 text-sm">
               {[
                 { cmd: '/shoutboard list', desc: 'Show recent boards' },

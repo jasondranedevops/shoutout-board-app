@@ -1,9 +1,27 @@
+import crypto from 'crypto'
 import pino from 'pino'
 
 const logger = pino({ name: 'zoom' })
 
 const ZOOM_API = 'https://api.zoom.us/v2'
 const ZOOM_OAUTH = 'https://zoom.us/oauth/token'
+
+// ── Webhook verification ──────────────────────────────────────────────────────
+
+export function verifyZoomWebhook(
+  secretToken: string,
+  timestamp: string,
+  rawBody: string,
+  signature: string,
+): boolean {
+  try {
+    const message = `v0:${timestamp}:${rawBody}`
+    const expected = `v0=${crypto.createHmac('sha256', secretToken).update(message).digest('hex')}`
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected))
+  } catch {
+    return false
+  }
+}
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 

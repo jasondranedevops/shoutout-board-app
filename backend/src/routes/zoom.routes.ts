@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import {
   exchangeZoomCode,
   postSlashCommandResponse,
+  verifyZoomWebhook,
   parseDateTime,
   formatDate,
 } from '@/services/zoom.service'
@@ -155,50 +156,78 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
     }
   )
 
-  // ── Bot Commands ───────────────────────────────────────────────────────────
-  app.post(
-    '/api/zoom/commands',
+  // ── Bot Commands (DM-based) ────────────────────────────────────────────────
+  // Receives Zoom webhook events. Each org gets a unique URL:
+  //   POST /api/zoom/commands/:orgId
+  // Handles: endpoint.url_validation + chat_message.sent (DM commands)
+  app.post<{ Params: { orgId: string } }>(
+    '/api/zoom/commands/:orgId',
     async (request, reply) => {
+      const { orgId } = request.params
       const body = request.body as any
-      const payload = body?.payload
+      const rawBody = (request as any).rawBody || JSON.stringify(body)
 
-      if (!payload) {
-        return reply.status(401).send('Unauthorized')
+      // ── URL validation challenge (Zoom fires this when saving the endpoint) ─
+      if (body?.event === 'endpoint.url_validation') {
+        const plainToken = body.payload?.plainToken
+        if (!plainToken) return reply.status(400).send('Missing plainToken')
+        const creds = await getZoomCredentials(orgId)
+        const secretToken = creds.verificationToken
+        if (!secretToken) return reply.status(400).send('Secret token not configured')
+        const crypto = await import('crypto')
+        const encryptedToken = crypto.createHmac('sha256', secretToken).update(plainToken).digest('hex')
+        return reply.send({ plainToken, encryptedToken })
       }
 
-      const { cmd = '', toJid, accountId: payloadAccountId } = payload
+      // ── Verify HMAC-SHA256 signature ───────────────────────────────────────
+      const timestamp = request.headers['x-zm-request-timestamp'] as string
+      const signature = request.headers['x-zm-signature'] as string
 
-      // Look up org by Zoom accountId
-      const installation = await prisma.zoomInstallation.findFirst({
-        where: { accountId: payloadAccountId },
-      })
-
-      // Get org-specific verification token (fall back to env var)
-      const expectedToken = installation
-        ? (await getZoomCredentials(installation.orgId)).verificationToken
-        : ZOOM_VERIFICATION_TOKEN
-
-      if (payload.verification_token !== expectedToken) {
-        return reply.status(401).send('Unauthorized')
-      }
-
-      if (!installation) {
-        reply.send({ message: 'ok' })
-        return
-      }
-
-      const { accountId, orgId } = installation
-
-      // Get org credentials for posting responses
       const creds = await getZoomCredentials(orgId)
+      const secretToken = creds.verificationToken
 
-      // Parse command — cmd is like "/shoutboard list" or "/shoutboard create ..."
-      const trimmed = cmd.replace(/^\/shoutboard\s*/i, '').trim()
+      if (!secretToken || !verifyZoomWebhook(secretToken, timestamp, rawBody, signature)) {
+        return reply.status(401).send('Unauthorized')
+      }
+
+      // ── Only handle DM messages ────────────────────────────────────────────
+      const event = body?.event
+      if (event !== 'chat_message.sent') {
+        return reply.send({ message: 'ok' })
+      }
+
+      const payload = body.payload
+      const object = payload?.object
+
+      // Only process Direct Messages (type 'D') to the bot
+      if (!object || object.type !== 'D') {
+        return reply.send({ message: 'ok' })
+      }
+
+      const message: string = (object.message || '').trim()
+
+      // Only process messages that start with /shoutboard
+      if (!message.toLowerCase().startsWith('/shoutboard')) {
+        return reply.send({ message: 'ok' })
+      }
+
+      // Look up installation by orgId
+      const installation = await prisma.zoomInstallation.findUnique({ where: { orgId } })
+      if (!installation) {
+        return reply.send({ message: 'ok' })
+      }
+
+      const accountId = payload.account_id || installation.accountId
+      // toJid = the user who sent the DM (we reply back to them)
+      const toJid = object.sender_id || payload.operator_id || ''
+
+      // Parse command
+      const trimmed = message.replace(/^\/shoutboard\s*/i, '').trim()
       const spaceIdx = trimmed.indexOf(' ')
       const subcommand = (spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx)).toLowerCase()
       const rest = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim()
 
-      // Respond immediately (Zoom requires response quickly)
+      // Respond immediately
       reply.send({ message: 'ok' })
 
       // Process asynchronously
@@ -467,8 +496,8 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
             body: [{ type: 'message', text: `❓ Unknown command \`${subcommand}\`. Try \`/shoutboard help\`.` }],
           }, creds.clientId, creds.clientSecret, creds.botJid)
         } catch (err) {
-          logger.error({ err }, 'Zoom slash command processing failed')
-          await postSlashCommandResponse(payloadAccountId, toJid, {
+          logger.error({ err }, 'Zoom command processing failed')
+          await postSlashCommandResponse(accountId, toJid, {
             head: { text: 'Error' },
             body: [{ type: 'message', text: '❌ Something went wrong. Please try again.' }],
           }, creds.clientId, creds.clientSecret, creds.botJid).catch(() => {})
