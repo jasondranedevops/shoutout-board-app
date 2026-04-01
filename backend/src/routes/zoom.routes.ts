@@ -520,7 +520,8 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
           createdAt: true,
         },
       })
-      return reply.send({ success: true, data: { installation } })
+      const webhookUrl = `${API_URL}/api/zoom/commands/${request.org!.id}`
+      return reply.send({ success: true, data: { installation, webhookUrl } })
     }
   )
 

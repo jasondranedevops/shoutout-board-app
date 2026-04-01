@@ -117,7 +117,7 @@ export default function IntegrationsPage() {
     queryKey: ['zoom-status'],
     queryFn: async () => {
       const res = await apiClient.get('/v1/zoom/status')
-      return res.data.data.installation as ZoomInstallation | null
+      return res.data.data as { installation: ZoomInstallation | null; webhookUrl: string }
     },
   })
 
@@ -129,7 +129,8 @@ export default function IntegrationsPage() {
     },
   })
 
-  const zoomInstallation = zoomData ?? null
+  const zoomInstallation = zoomData?.installation ?? null
+  const zoomWebhookUrl = zoomData?.webhookUrl ?? ''
   const zoomAppConfig = zoomConfigData ?? null
 
   const handleConnectZoom = async () => {
@@ -616,7 +617,7 @@ export default function IntegrationsPage() {
             <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
               <p className="mb-1 font-semibold">Webhook endpoint URL (enter this in your Zoom app → Access → Event Subscription)</p>
               <code className="break-all font-mono">
-                {process.env.NEXT_PUBLIC_API_URL || 'https://shoutout-api.figtree-development.net'}/api/zoom/commands/{orgId}
+                {zoomWebhookUrl || 'Loading...'}
               </code>
               <p className="mt-1 text-blue-600">Subscribe to the <strong>Team Chat DM Message Posted</strong> event.</p>
             </div>
