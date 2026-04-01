@@ -47,7 +47,7 @@ export default function SignupPage() {
       )
       const { token, user, org } = response.data.data
       login(token, user, org)
-      router.push('/dashboard')
+      window.location.href = '/dashboard'
     } catch (error: unknown) {
       const err = error as any
       setApiError(

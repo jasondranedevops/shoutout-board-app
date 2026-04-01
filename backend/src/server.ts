@@ -57,6 +57,22 @@ async function main() {
       },
     })
 
+    // Parse application/x-www-form-urlencoded — required for Slack slash commands
+    // and interactions. Also captures rawBody string for Slack signature verification.
+    app.addContentTypeParser(
+      'application/x-www-form-urlencoded',
+      { parseAs: 'string' },
+      (_req, body, done) => {
+        ;(_req as any).rawBody = body
+        const parsed = new URLSearchParams(body as string)
+        const result: Record<string, string> = {}
+        for (const [key, value] of parsed) {
+          result[key] = value
+        }
+        done(null, result)
+      }
+    )
+
     // Swagger/OpenAPI
     await app.register(fastifySwagger, {
       swagger: {
@@ -114,8 +130,8 @@ async function main() {
     await app.register((await import('@/routes/employees.routes')).employeesRoutes)
     await app.register((await import('@/routes/slack.routes')).slackRoutes)
 
-    // Health check
-    app.get('/health', async () => {
+    // Health check — exempt from rate limiting so k8s probes never get 429
+    app.get('/health', { config: { rateLimit: false } }, async () => {
       return { status: 'ok', timestamp: new Date().toISOString() }
     })
 

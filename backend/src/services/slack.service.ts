@@ -57,7 +57,7 @@ export async function exchangeSlackCode(code: string): Promise<{
     client_id: process.env.SLACK_CLIENT_ID!,
     client_secret: process.env.SLACK_CLIENT_SECRET!,
     code,
-    redirect_uri: `${process.env.APP_URL}/api/slack/oauth/callback`,
+    redirect_uri: `${process.env.API_URL || process.env.APP_URL}/api/slack/oauth/callback`,
   })
 
   const res = await fetch(`${SLACK_API}/oauth.v2.access?${params}`)

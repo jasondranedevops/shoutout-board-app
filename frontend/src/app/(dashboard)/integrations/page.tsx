@@ -64,8 +64,9 @@ export default function IntegrationsPage() {
     }
   }, [installation])
 
-  const handleConnectSlack = () => {
-    window.location.href = `/api/v1/slack/oauth/install`
+  const handleConnectSlack = async () => {
+    const res = await apiClient.get('/v1/slack/oauth/install-url')
+    window.location.href = res.data.data.url
   }
 
   const handleSaveChannel = () => {
