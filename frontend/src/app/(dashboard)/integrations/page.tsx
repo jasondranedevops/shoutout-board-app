@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { CheckCircle, XCircle, ExternalLink, Trash2, Hash } from 'lucide-react'
+import { CheckCircle, XCircle, ExternalLink, Trash2, Hash, Settings, Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import apiClient from '@/src/lib/api'
@@ -22,11 +22,80 @@ interface ZoomInstallation {
   createdAt: string
 }
 
+interface SlackAppConfig {
+  clientId: string
+  hasClientSecret: boolean
+  hasSigningSecret: boolean
+  createdAt: string
+}
+
+interface ZoomAppConfig {
+  clientId: string
+  botJid: string | null
+  hasClientSecret: boolean
+  hasVerificationToken: boolean
+  createdAt: string
+}
+
+function PasswordInput({
+  value,
+  onChange,
+  placeholder,
+  id,
+}: {
+  value: string
+  onChange: (v: string) => void
+  placeholder?: string
+  id?: string
+}) {
+  const [show, setShow] = useState(false)
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-lg border border-gray-300 px-3 pr-10 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+        autoComplete="off"
+      />
+      <button
+        type="button"
+        onClick={() => setShow((s) => !s)}
+        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        tabIndex={-1}
+      >
+        {show ? <EyeOff size={15} /> : <Eye size={15} />}
+      </button>
+    </div>
+  )
+}
+
 export default function IntegrationsPage() {
   const { org } = useAuthStore()
   const qc = useQueryClient()
   const [channel, setChannel] = useState('')
   const [channelSaved, setChannelSaved] = useState(false)
+
+  // Slack config form state
+  const [showSlackConfigForm, setShowSlackConfigForm] = useState(false)
+  const [slackConfigForm, setSlackConfigForm] = useState({
+    clientId: '',
+    clientSecret: '',
+    signingSecret: '',
+  })
+  const [slackConfigSaved, setSlackConfigSaved] = useState(false)
+
+  // Zoom config form state
+  const [showZoomConfigForm, setShowZoomConfigForm] = useState(false)
+  const [zoomConfigForm, setZoomConfigForm] = useState({
+    clientId: '',
+    clientSecret: '',
+    botJid: '',
+    verificationToken: '',
+  })
+  const [zoomConfigSaved, setZoomConfigSaved] = useState(false)
 
   // Check URL params for OAuth result
   useEffect(() => {
@@ -41,6 +110,8 @@ export default function IntegrationsPage() {
     }
   }, [qc])
 
+  // ── Zoom queries & mutations ───────────────────────────────────────────────
+
   const { data: zoomData } = useQuery({
     queryKey: ['zoom-status'],
     queryFn: async () => {
@@ -49,7 +120,16 @@ export default function IntegrationsPage() {
     },
   })
 
+  const { data: zoomConfigData } = useQuery({
+    queryKey: ['zoom-app-config'],
+    queryFn: async () => {
+      const res = await apiClient.get('/v1/zoom/app-config')
+      return res.data.data.config as ZoomAppConfig | null
+    },
+  })
+
   const zoomInstallation = zoomData ?? null
+  const zoomAppConfig = zoomConfigData ?? null
 
   const handleConnectZoom = async () => {
     const res = await apiClient.get('/v1/zoom/oauth/install-url')
@@ -61,6 +141,30 @@ export default function IntegrationsPage() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['zoom-status'] }),
   })
 
+  const saveZoomConfigMutation = useMutation({
+    mutationFn: (data: typeof zoomConfigForm) =>
+      apiClient.put('/v1/zoom/app-config', {
+        clientId: data.clientId,
+        clientSecret: data.clientSecret,
+        botJid: data.botJid || undefined,
+        verificationToken: data.verificationToken || undefined,
+      }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['zoom-app-config'] })
+      setShowZoomConfigForm(false)
+      setZoomConfigSaved(true)
+      setZoomConfigForm({ clientId: '', clientSecret: '', botJid: '', verificationToken: '' })
+      setTimeout(() => setZoomConfigSaved(false), 3000)
+    },
+  })
+
+  const deleteZoomConfigMutation = useMutation({
+    mutationFn: () => apiClient.delete('/v1/zoom/app-config'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['zoom-app-config'] }),
+  })
+
+  // ── Slack queries & mutations ──────────────────────────────────────────────
+
   const { data: slackData, isLoading } = useQuery({
     queryKey: ['slack-status'],
     queryFn: async () => {
@@ -68,6 +172,16 @@ export default function IntegrationsPage() {
       return res.data.data.installation as SlackInstallation | null
     },
   })
+
+  const { data: slackConfigData } = useQuery({
+    queryKey: ['slack-app-config'],
+    queryFn: async () => {
+      const res = await apiClient.get('/v1/slack/app-config')
+      return res.data.data.config as SlackAppConfig | null
+    },
+  })
+
+  const slackAppConfig = slackConfigData ?? null
 
   const channelMutation = useMutation({
     mutationFn: (incomingChannel: string) =>
@@ -82,6 +196,23 @@ export default function IntegrationsPage() {
   const disconnectMutation = useMutation({
     mutationFn: () => apiClient.delete('/v1/slack'),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['slack-status'] }),
+  })
+
+  const saveSlackConfigMutation = useMutation({
+    mutationFn: (data: typeof slackConfigForm) =>
+      apiClient.put('/v1/slack/app-config', data),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['slack-app-config'] })
+      setShowSlackConfigForm(false)
+      setSlackConfigSaved(true)
+      setSlackConfigForm({ clientId: '', clientSecret: '', signingSecret: '' })
+      setTimeout(() => setSlackConfigSaved(false), 3000)
+    },
+  })
+
+  const deleteSlackConfigMutation = useMutation({
+    mutationFn: () => apiClient.delete('/v1/slack/app-config'),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['slack-app-config'] }),
   })
 
   const installation = slackData ?? null
@@ -102,6 +233,16 @@ export default function IntegrationsPage() {
     if (channel.trim()) {
       channelMutation.mutate(channel.trim())
     }
+  }
+
+  const handleSaveSlackConfig = () => {
+    if (!slackConfigForm.clientId || !slackConfigForm.clientSecret || !slackConfigForm.signingSecret) return
+    saveSlackConfigMutation.mutate(slackConfigForm)
+  }
+
+  const handleSaveZoomConfig = () => {
+    if (!zoomConfigForm.clientId || !zoomConfigForm.clientSecret) return
+    saveZoomConfigMutation.mutate(zoomConfigForm)
   }
 
   return (
@@ -134,6 +275,9 @@ export default function IntegrationsPage() {
                     <XCircle size={12} /> Not connected
                   </span>
                 )}
+                {slackConfigSaved && (
+                  <span className="text-xs text-green-600 font-medium">Credentials saved</span>
+                )}
               </div>
               <p className="mt-1 text-sm text-gray-500">
                 Create boards with <code className="rounded bg-gray-100 px-1 text-xs">/shoutboard</code>, get notified when boards are ready and sent.
@@ -147,7 +291,7 @@ export default function IntegrationsPage() {
             </div>
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-2">
             {installation ? (
               <Button
                 variant="outline"
@@ -162,18 +306,125 @@ export default function IntegrationsPage() {
               >
                 Disconnect
               </Button>
+            ) : slackAppConfig ? (
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<ExternalLink size={14} />}
+                  onClick={handleConnectSlack}
+                >
+                  Connect Slack
+                </Button>
+                <button
+                  onClick={() => setShowSlackConfigForm((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+                >
+                  <Settings size={12} /> Edit credentials
+                </button>
+              </>
             ) : (
               <Button
-                variant="primary"
+                variant="outline"
                 size="sm"
-                icon={<ExternalLink size={14} />}
-                onClick={handleConnectSlack}
+                icon={<Settings size={14} />}
+                onClick={() => setShowSlackConfigForm((v) => !v)}
               >
-                Connect Slack
+                Configure
               </Button>
             )}
           </div>
         </div>
+
+        {/* Slack app config form */}
+        {showSlackConfigForm && !installation && (
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <h3 className="mb-1 text-sm font-semibold text-gray-800">Slack app credentials</h3>
+            <p className="mb-4 text-sm text-gray-500">
+              Create a Slack app at{' '}
+              <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                api.slack.com/apps
+              </a>
+              , then enter your credentials below.
+            </p>
+            {slackAppConfig && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                Credentials already saved (Client ID: <strong>{slackAppConfig.clientId}</strong>). Enter new values to update.
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="slack-client-id">
+                  Client ID
+                </label>
+                <input
+                  id="slack-client-id"
+                  type="text"
+                  value={slackConfigForm.clientId}
+                  onChange={(e) => setSlackConfigForm((f) => ({ ...f, clientId: e.target.value }))}
+                  placeholder="1234567890.1234567890"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="slack-client-secret">
+                  Client Secret
+                </label>
+                <PasswordInput
+                  id="slack-client-secret"
+                  value={slackConfigForm.clientSecret}
+                  onChange={(v) => setSlackConfigForm((f) => ({ ...f, clientSecret: v }))}
+                  placeholder="abcdef1234567890abcdef1234567890"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="slack-signing-secret">
+                  Signing Secret
+                </label>
+                <PasswordInput
+                  id="slack-signing-secret"
+                  value={slackConfigForm.signingSecret}
+                  onChange={(v) => setSlackConfigForm((f) => ({ ...f, signingSecret: v }))}
+                  placeholder="abcdef1234567890abcdef1234567890"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={saveSlackConfigMutation.isPending}
+                onClick={handleSaveSlackConfig}
+                disabled={!slackConfigForm.clientId || !slackConfigForm.clientSecret || !slackConfigForm.signingSecret}
+              >
+                Save credentials
+              </Button>
+              <button
+                onClick={() => {
+                  setShowSlackConfigForm(false)
+                  setSlackConfigForm({ clientId: '', clientSecret: '', signingSecret: '' })
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+              {slackAppConfig && (
+                <button
+                  onClick={() => {
+                    if (confirm('Remove saved Slack credentials?')) {
+                      deleteSlackConfigMutation.mutate()
+                      setShowSlackConfigForm(false)
+                    }
+                  }}
+                  className="ml-auto text-xs text-red-500 hover:text-red-700"
+                >
+                  Remove credentials
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Channel config — only show when connected */}
         {installation && (
@@ -262,6 +513,9 @@ export default function IntegrationsPage() {
                     <XCircle size={12} /> Not connected
                   </span>
                 )}
+                {zoomConfigSaved && (
+                  <span className="text-xs text-green-600 font-medium">Credentials saved</span>
+                )}
               </div>
               <p className="mt-1 text-sm text-gray-500">
                 Create boards with <code className="rounded bg-gray-100 px-1 text-xs">/shoutboard</code> directly in Zoom Team Chat.
@@ -275,7 +529,7 @@ export default function IntegrationsPage() {
             </div>
           </div>
 
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 flex items-center gap-2">
             {zoomInstallation ? (
               <Button
                 variant="outline"
@@ -290,18 +544,139 @@ export default function IntegrationsPage() {
               >
                 Disconnect
               </Button>
+            ) : zoomAppConfig ? (
+              <>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<ExternalLink size={14} />}
+                  onClick={handleConnectZoom}
+                >
+                  Connect Zoom
+                </Button>
+                <button
+                  onClick={() => setShowZoomConfigForm((v) => !v)}
+                  className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
+                >
+                  <Settings size={12} /> Edit credentials
+                </button>
+              </>
             ) : (
               <Button
-                variant="primary"
+                variant="outline"
                 size="sm"
-                icon={<ExternalLink size={14} />}
-                onClick={handleConnectZoom}
+                icon={<Settings size={14} />}
+                onClick={() => setShowZoomConfigForm((v) => !v)}
               >
-                Connect Zoom
+                Configure
               </Button>
             )}
           </div>
         </div>
+
+        {/* Zoom app config form */}
+        {showZoomConfigForm && !zoomInstallation && (
+          <div className="mt-6 border-t border-gray-100 pt-6">
+            <h3 className="mb-1 text-sm font-semibold text-gray-800">Zoom app credentials</h3>
+            <p className="mb-4 text-sm text-gray-500">
+              Create a Zoom app at{' '}
+              <a href="https://marketplace.zoom.us" target="_blank" rel="noopener noreferrer" className="text-indigo-600 hover:underline">
+                marketplace.zoom.us
+              </a>
+              , then enter your credentials below.
+            </p>
+            {zoomAppConfig && (
+              <div className="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                Credentials already saved (Client ID: <strong>{zoomAppConfig.clientId}</strong>). Enter new values to update.
+              </div>
+            )}
+            <div className="space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="zoom-client-id">
+                  Client ID
+                </label>
+                <input
+                  id="zoom-client-id"
+                  type="text"
+                  value={zoomConfigForm.clientId}
+                  onChange={(e) => setZoomConfigForm((f) => ({ ...f, clientId: e.target.value }))}
+                  placeholder="abcDEF123456"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="zoom-client-secret">
+                  Client Secret
+                </label>
+                <PasswordInput
+                  id="zoom-client-secret"
+                  value={zoomConfigForm.clientSecret}
+                  onChange={(v) => setZoomConfigForm((f) => ({ ...f, clientSecret: v }))}
+                  placeholder="abcdef1234567890abcdef1234567890"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="zoom-bot-jid">
+                  Bot JID <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <input
+                  id="zoom-bot-jid"
+                  type="text"
+                  value={zoomConfigForm.botJid}
+                  onChange={(e) => setZoomConfigForm((f) => ({ ...f, botJid: e.target.value }))}
+                  placeholder="v1botjid@xmpp.zoom.us"
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  autoComplete="off"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor="zoom-verification-token">
+                  Verification Token <span className="font-normal text-gray-400">(optional)</span>
+                </label>
+                <PasswordInput
+                  id="zoom-verification-token"
+                  value={zoomConfigForm.verificationToken}
+                  onChange={(v) => setZoomConfigForm((f) => ({ ...f, verificationToken: v }))}
+                  placeholder="abcdef1234567890"
+                />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-3">
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={saveZoomConfigMutation.isPending}
+                onClick={handleSaveZoomConfig}
+                disabled={!zoomConfigForm.clientId || !zoomConfigForm.clientSecret}
+              >
+                Save credentials
+              </Button>
+              <button
+                onClick={() => {
+                  setShowZoomConfigForm(false)
+                  setZoomConfigForm({ clientId: '', clientSecret: '', botJid: '', verificationToken: '' })
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+              {zoomAppConfig && (
+                <button
+                  onClick={() => {
+                    if (confirm('Remove saved Zoom credentials?')) {
+                      deleteZoomConfigMutation.mutate()
+                      setShowZoomConfigForm(false)
+                    }
+                  }}
+                  className="ml-auto text-xs text-red-500 hover:text-red-700"
+                >
+                  Remove credentials
+                </button>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Slash command reference — only show when connected */}
         {zoomInstallation && (

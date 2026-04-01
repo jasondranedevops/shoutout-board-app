@@ -7,6 +7,7 @@ import {
   parseDateTime,
   formatDate,
 } from '@/services/zoom.service'
+import { encrypt, decrypt } from '@/services/encryption.service'
 import pino from 'pino'
 
 const logger = pino({ name: 'zoom-routes' })
@@ -17,7 +18,81 @@ const ZOOM_CLIENT_ID = process.env.ZOOM_CLIENT_ID || ''
 const ZOOM_BOT_JID = process.env.ZOOM_BOT_JID || ''
 const ZOOM_VERIFICATION_TOKEN = process.env.ZOOM_VERIFICATION_TOKEN || ''
 
+async function getZoomCredentials(orgId: string) {
+  const config = await prisma.zoomAppConfig.findUnique({ where: { orgId } })
+  return {
+    clientId: config?.clientId || ZOOM_CLIENT_ID,
+    clientSecret: config ? decrypt(config.clientSecretEnc) : (process.env.ZOOM_CLIENT_SECRET || ''),
+    botJid: config?.botJid || ZOOM_BOT_JID,
+    verificationToken: config?.verificationTokenEnc ? decrypt(config.verificationTokenEnc) : ZOOM_VERIFICATION_TOKEN,
+    hasConfig: !!config,
+  }
+}
+
 export const zoomRoutes: FastifyPluginAsync = async (app) => {
+  // ── App Configuration ──────────────────────────────────────────────────────
+  app.put<{ Body: { clientId: string; clientSecret: string; botJid?: string; verificationToken?: string } }>(
+    '/v1/zoom/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      const { clientId, clientSecret, botJid, verificationToken } = request.body
+      if (!clientId || !clientSecret) {
+        return reply.status(400).send({ success: false, error: { message: 'clientId and clientSecret are required' } })
+      }
+      await prisma.zoomAppConfig.upsert({
+        where: { orgId: request.org!.id },
+        update: {
+          clientId,
+          clientSecretEnc: encrypt(clientSecret),
+          botJid: botJid || null,
+          verificationTokenEnc: verificationToken ? encrypt(verificationToken) : null,
+        },
+        create: {
+          orgId: request.org!.id,
+          clientId,
+          clientSecretEnc: encrypt(clientSecret),
+          botJid: botJid || null,
+          verificationTokenEnc: verificationToken ? encrypt(verificationToken) : null,
+        },
+      })
+      return reply.send({ success: true })
+    }
+  )
+
+  app.get(
+    '/v1/zoom/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      const config = await prisma.zoomAppConfig.findUnique({
+        where: { orgId: request.org!.id },
+        select: { clientId: true, botJid: true, createdAt: true },
+      })
+      return reply.send({
+        success: true,
+        data: {
+          config: config
+            ? {
+                clientId: config.clientId,
+                botJid: config.botJid,
+                hasClientSecret: true,
+                hasVerificationToken: true,
+                createdAt: config.createdAt,
+              }
+            : null,
+        },
+      })
+    }
+  )
+
+  app.delete(
+    '/v1/zoom/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      await prisma.zoomAppConfig.deleteMany({ where: { orgId: request.org!.id } })
+      return reply.send({ success: true })
+    }
+  )
+
   // ── OAuth Install URL (JSON) ───────────────────────────────────────────────
   app.get(
     '/v1/zoom/oauth/install-url',
@@ -27,9 +102,14 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
         JSON.stringify({ orgId: request.org!.id, nonce: nanoid(12) })
       ).toString('base64url')
 
+      const creds = await getZoomCredentials(request.org!.id)
+      if (!creds.clientId) {
+        return reply.status(400).send({ success: false, error: { message: 'Zoom app credentials not configured' } })
+      }
+
       const url = new URL('https://zoom.us/oauth/authorize')
       url.searchParams.set('response_type', 'code')
-      url.searchParams.set('client_id', ZOOM_CLIENT_ID)
+      url.searchParams.set('client_id', creds.clientId)
       url.searchParams.set('redirect_uri', `${API_URL}/api/zoom/oauth/callback`)
       url.searchParams.set('state', state)
 
@@ -56,8 +136,9 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
       }
 
       try {
+        const creds = await getZoomCredentials(orgId)
         const redirectUri = `${API_URL}/api/zoom/oauth/callback`
-        const { accountId, accountName } = await exchangeZoomCode(code, redirectUri)
+        const { accountId, accountName } = await exchangeZoomCode(code, redirectUri, creds.clientId, creds.clientSecret)
 
         await prisma.zoomInstallation.upsert({
           where: { orgId },
@@ -81,8 +162,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
       const body = request.body as any
       const payload = body?.payload
 
-      // Verify token
-      if (!payload || payload.verification_token !== ZOOM_VERIFICATION_TOKEN) {
+      if (!payload) {
         return reply.status(401).send('Unauthorized')
       }
 
@@ -93,13 +173,24 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
         where: { accountId: payloadAccountId },
       })
 
+      // Get org-specific verification token (fall back to env var)
+      const expectedToken = installation
+        ? (await getZoomCredentials(installation.orgId)).verificationToken
+        : ZOOM_VERIFICATION_TOKEN
+
+      if (payload.verification_token !== expectedToken) {
+        return reply.status(401).send('Unauthorized')
+      }
+
       if (!installation) {
-        // Respond immediately and bail
         reply.send({ message: 'ok' })
         return
       }
 
       const { accountId, orgId } = installation
+
+      // Get org credentials for posting responses
+      const creds = await getZoomCredentials(orgId)
 
       // Parse command — cmd is like "/shoutboard list" or "/shoutboard create ..."
       const trimmed = cmd.replace(/^\/shoutboard\s*/i, '').trim()
@@ -134,7 +225,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   text: 'Date formats: `Dec 25`, `12/25`, `2026-12-25` · Time: `at 9am`, `at 2:30pm`',
                 },
               ],
-            })
+            }, creds.clientId, creds.clientSecret, creds.botJid)
             return
           }
 
@@ -156,7 +247,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                     text: 'No boards yet. Create one with `/shoutboard create "Happy Birthday, Alex!" for Alex on Dec 25`',
                   },
                 ],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -177,7 +268,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   text: `${statusEmoji[b.status] ?? '•'} *${b.title}*\nFor ${b.recipientName} · ${b.status}${scheduledLine} · [View](${APP_URL}/b/${b.slug})`,
                 }
               }),
-            })
+            }, creds.clientId, creds.clientSecret, creds.botJid)
             return
           }
 
@@ -193,7 +284,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   type: 'message',
                   text: '❌ Usage: `/shoutboard create "Board title" for Name` or `/shoutboard create "Board title" for Name on Dec 25 at 9am`',
                 }],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -214,7 +305,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                     type: 'message',
                     text: `❌ Couldn't parse date: *${dateStr}*\nTry formats like \`Dec 25\`, \`Dec 25 at 9am\`, \`12/25\`, \`2026-12-25 at 2pm\``,
                   }],
-                })
+                }, creds.clientId, creds.clientSecret, creds.botJid)
                 return
               }
             } else {
@@ -244,7 +335,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
               await postSlashCommandResponse(accountId, toJid, {
                 head: { text: 'Error' },
                 body: [{ type: 'message', text: '❌ Could not find an admin user for your organization.' }],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -291,7 +382,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   ],
                 },
               ],
-            })
+            }, creds.clientId, creds.clientSecret, creds.botJid)
             return
           }
 
@@ -304,7 +395,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
               await postSlashCommandResponse(accountId, toJid, {
                 head: { text: 'Usage Error' },
                 body: [{ type: 'message', text: '❌ Usage: `/shoutboard schedule "Board title" on Dec 25 at 9am`' }],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -319,7 +410,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   type: 'message',
                   text: `❌ Couldn't parse date: *${dateStr}*\nTry formats like \`Dec 25\`, \`Dec 25 at 9am\`, \`12/25\`, \`2026-12-25 at 2pm\``,
                 }],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -340,7 +431,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   type: 'message',
                   text: `❌ No active board found matching *"${titleQuery}"*. Use \`/shoutboard list\` to see your boards.`,
                 }],
-              })
+              }, creds.clientId, creds.clientSecret, creds.botJid)
               return
             }
 
@@ -366,7 +457,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
                   }],
                 },
               ],
-            })
+            }, creds.clientId, creds.clientSecret, creds.botJid)
             return
           }
 
@@ -374,13 +465,13 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
           await postSlashCommandResponse(accountId, toJid, {
             head: { text: 'Unknown Command' },
             body: [{ type: 'message', text: `❓ Unknown command \`${subcommand}\`. Try \`/shoutboard help\`.` }],
-          })
+          }, creds.clientId, creds.clientSecret, creds.botJid)
         } catch (err) {
           logger.error({ err }, 'Zoom slash command processing failed')
           await postSlashCommandResponse(payloadAccountId, toJid, {
             head: { text: 'Error' },
             body: [{ type: 'message', text: '❌ Something went wrong. Please try again.' }],
-          }).catch(() => {})
+          }, creds.clientId, creds.clientSecret, creds.botJid).catch(() => {})
         }
       })
     }

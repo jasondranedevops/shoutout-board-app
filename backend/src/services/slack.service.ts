@@ -47,17 +47,22 @@ async function slackPost(method: string, token: string, body: Record<string, unk
 
 // ── OAuth ─────────────────────────────────────────────────────────────────────
 
-export async function exchangeSlackCode(code: string): Promise<{
+export async function exchangeSlackCode(
+  code: string,
+  clientId: string,
+  clientSecret: string,
+  redirectUri: string,
+): Promise<{
   teamId: string
   teamName: string
   botToken: string
   botUserId: string
 }> {
   const params = new URLSearchParams({
-    client_id: process.env.SLACK_CLIENT_ID!,
-    client_secret: process.env.SLACK_CLIENT_SECRET!,
+    client_id: clientId,
+    client_secret: clientSecret,
     code,
-    redirect_uri: `${process.env.API_URL || process.env.APP_URL}/api/slack/oauth/callback`,
+    redirect_uri: redirectUri,
   })
 
   const res = await fetch(`${SLACK_API}/oauth.v2.access?${params}`)

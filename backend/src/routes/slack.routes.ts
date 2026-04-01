@@ -7,6 +7,7 @@ import {
   postSlashCommandResponse,
   notifySlackBoardCreated,
 } from '@/services/slack.service'
+import { encrypt, decrypt } from '@/services/encryption.service'
 import pino from 'pino'
 
 const logger = pino({ name: 'slack-routes' })
@@ -116,7 +117,75 @@ function formatDate(d: Date): string {
   })
 }
 
+async function getSlackCredentials(orgId: string) {
+  const config = await prisma.slackAppConfig.findUnique({ where: { orgId } })
+  return {
+    clientId: config?.clientId || SLACK_CLIENT_ID,
+    clientSecret: config ? decrypt(config.clientSecretEnc) : (process.env.SLACK_CLIENT_SECRET || ''),
+    signingSecret: config ? decrypt(config.signingSecretEnc) : SLACK_SIGNING_SECRET,
+    hasConfig: !!config,
+  }
+}
+
 export const slackRoutes: FastifyPluginAsync = async (app) => {
+  // ── App Configuration ──────────────────────────────────────────────────────
+  // Save org-level Slack app credentials (clientId, clientSecret, signingSecret)
+  app.put<{ Body: { clientId: string; clientSecret: string; signingSecret: string } }>(
+    '/v1/slack/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      const { clientId, clientSecret, signingSecret } = request.body
+      if (!clientId || !clientSecret || !signingSecret) {
+        return reply.status(400).send({ success: false, error: { message: 'clientId, clientSecret, and signingSecret are required' } })
+      }
+      await prisma.slackAppConfig.upsert({
+        where: { orgId: request.org!.id },
+        update: {
+          clientId,
+          clientSecretEnc: encrypt(clientSecret),
+          signingSecretEnc: encrypt(signingSecret),
+        },
+        create: {
+          orgId: request.org!.id,
+          clientId,
+          clientSecretEnc: encrypt(clientSecret),
+          signingSecretEnc: encrypt(signingSecret),
+        },
+      })
+      return reply.send({ success: true })
+    }
+  )
+
+  // Get org's Slack app config (non-sensitive fields only)
+  app.get(
+    '/v1/slack/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      const config = await prisma.slackAppConfig.findUnique({
+        where: { orgId: request.org!.id },
+        select: { clientId: true, createdAt: true },
+      })
+      return reply.send({
+        success: true,
+        data: {
+          config: config
+            ? { clientId: config.clientId, hasClientSecret: true, hasSigningSecret: true, createdAt: config.createdAt }
+            : null,
+        },
+      })
+    }
+  )
+
+  // Delete org's Slack app config
+  app.delete(
+    '/v1/slack/app-config',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      await prisma.slackAppConfig.deleteMany({ where: { orgId: request.org!.id } })
+      return reply.send({ success: true })
+    }
+  )
+
   // ── OAuth Install URL (JSON) ───────────────────────────────────────────────
   // Returns the Slack OAuth URL as JSON. Used by the frontend to initiate the
   // install flow without needing to navigate directly (browser can't set headers).
@@ -128,8 +197,13 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
         JSON.stringify({ orgId: request.org!.id, nonce: nanoid(12) })
       ).toString('base64url')
 
+      const creds = await getSlackCredentials(request.org!.id)
+      if (!creds.clientId) {
+        return reply.status(400).send({ success: false, error: { message: 'Slack app credentials not configured' } })
+      }
+
       const url = new URL('https://slack.com/oauth/v2/authorize')
-      url.searchParams.set('client_id', SLACK_CLIENT_ID)
+      url.searchParams.set('client_id', creds.clientId)
       url.searchParams.set('scope', SLACK_SCOPES)
       url.searchParams.set('redirect_uri', `${API_URL}/api/slack/oauth/callback`)
       url.searchParams.set('state', state)
@@ -148,8 +222,13 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
         JSON.stringify({ orgId: request.org!.id, nonce: nanoid(12) })
       ).toString('base64url')
 
+      const creds = await getSlackCredentials(request.org!.id)
+      if (!creds.clientId) {
+        return reply.status(400).send({ success: false, error: { message: 'Slack app credentials not configured' } })
+      }
+
       const url = new URL('https://slack.com/oauth/v2/authorize')
-      url.searchParams.set('client_id', SLACK_CLIENT_ID)
+      url.searchParams.set('client_id', creds.clientId)
       url.searchParams.set('scope', SLACK_SCOPES)
       url.searchParams.set('redirect_uri', `${API_URL}/api/slack/oauth/callback`)
       url.searchParams.set('state', state)
@@ -177,7 +256,11 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
       }
 
       try {
-        const { teamId, teamName, botToken, botUserId } = await exchangeSlackCode(code)
+        const creds = await getSlackCredentials(orgId)
+        const redirectUri = `${API_URL}/api/slack/oauth/callback`
+        const { teamId, teamName, botToken, botUserId } = await exchangeSlackCode(
+          code, creds.clientId, creds.clientSecret, redirectUri
+        )
 
         await prisma.slackInstallation.upsert({
           where: { orgId },
@@ -198,24 +281,28 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
   app.post(
     '/api/slack/commands',
     async (request, reply) => {
-      // Verify Slack signature
       const timestamp = request.headers['x-slack-request-timestamp'] as string
       const signature = request.headers['x-slack-signature'] as string
       const rawBody = (request as any).rawBody || ''
 
-      if (
-        !verifySlackSignature(SLACK_SIGNING_SECRET, rawBody, timestamp, signature)
-      ) {
-        return reply.status(401).send('Unauthorized')
-      }
-
       const body = request.body as Record<string, string>
       const { command, text = '', response_url, team_id } = body
 
-      // Look up org by Slack team ID
+      // Look up org by Slack team ID to get their signing secret
       const installation = await prisma.slackInstallation.findFirst({
         where: { teamId: team_id },
       })
+
+      // Get signing secret — org config takes precedence over env var
+      let signingSecret = SLACK_SIGNING_SECRET
+      if (installation) {
+        const config = await prisma.slackAppConfig.findUnique({ where: { orgId: installation.orgId } })
+        if (config) signingSecret = decrypt(config.signingSecretEnc)
+      }
+
+      if (!verifySlackSignature(signingSecret, rawBody, timestamp, signature)) {
+        return reply.status(401).send('Unauthorized')
+      }
 
       if (!installation) {
         return reply.send({
@@ -538,17 +625,25 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
     const signature = request.headers['x-slack-signature'] as string
     const rawBody = (request as any).rawBody || ''
 
-    if (!verifySlackSignature(SLACK_SIGNING_SECRET, rawBody, timestamp, signature)) {
-      return reply.status(401).send('Unauthorized')
+    // Parse payload first to get team_id for org-specific signing secret lookup
+    const body = request.body as Record<string, string>
+    let teamId: string | undefined
+    try {
+      const p = JSON.parse(body.payload)
+      teamId = p?.team?.id
+    } catch { /* ignore */ }
+
+    let signingSecret = SLACK_SIGNING_SECRET
+    if (teamId) {
+      const inst = await prisma.slackInstallation.findFirst({ where: { teamId } })
+      if (inst) {
+        const config = await prisma.slackAppConfig.findUnique({ where: { orgId: inst.orgId } })
+        if (config) signingSecret = decrypt(config.signingSecretEnc)
+      }
     }
 
-    // Interactions are URL-encoded with a "payload" field
-    const body = request.body as Record<string, string>
-    let payload: any
-    try {
-      payload = JSON.parse(body.payload)
-    } catch {
-      return reply.send({ ok: true })
+    if (!verifySlackSignature(signingSecret, rawBody, timestamp, signature)) {
+      return reply.status(401).send('Unauthorized')
     }
 
     // Most actions (button URL clicks) are handled by Slack itself — just ack

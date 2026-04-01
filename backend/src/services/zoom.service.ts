@@ -7,9 +7,7 @@ const ZOOM_OAUTH = 'https://zoom.us/oauth/token'
 
 // ── Token helpers ─────────────────────────────────────────────────────────────
 
-export async function getBotToken(): Promise<string> {
-  const clientId = process.env.ZOOM_CLIENT_ID!
-  const clientSecret = process.env.ZOOM_CLIENT_SECRET!
+async function getBotToken(clientId: string, clientSecret: string): Promise<string> {
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
   const res = await fetch(`${ZOOM_OAUTH}?grant_type=client_credentials`, {
@@ -35,10 +33,12 @@ export async function getBotToken(): Promise<string> {
 export async function sendZoomMessage(
   accountId: string,
   toJid: string,
-  content: object
+  content: object,
+  clientId: string,
+  clientSecret: string,
+  botJid: string,
 ): Promise<void> {
-  const botJid = process.env.ZOOM_BOT_JID!
-  const token = await getBotToken()
+  const token = await getBotToken(clientId, clientSecret)
 
   const res = await fetch(`${ZOOM_API}/im/chat/messages`, {
     method: 'POST',
@@ -64,19 +64,22 @@ export async function sendZoomMessage(
 export async function postSlashCommandResponse(
   accountId: string,
   toJid: string,
-  content: object
+  content: object,
+  clientId: string,
+  clientSecret: string,
+  botJid: string,
 ): Promise<void> {
-  return sendZoomMessage(accountId, toJid, content)
+  return sendZoomMessage(accountId, toJid, content, clientId, clientSecret, botJid)
 }
 
 // ── OAuth ─────────────────────────────────────────────────────────────────────
 
 export async function exchangeZoomCode(
   code: string,
-  redirectUri: string
-): Promise<{ accountId: string; accountName: string }> {
-  const clientId = process.env.ZOOM_CLIENT_ID!
-  const clientSecret = process.env.ZOOM_CLIENT_SECRET!
+  redirectUri: string,
+  clientId: string,
+  clientSecret: string,
+): Promise<{ accountId: string; accountName: string | null }> {
   const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64')
 
   const params = new URLSearchParams({
