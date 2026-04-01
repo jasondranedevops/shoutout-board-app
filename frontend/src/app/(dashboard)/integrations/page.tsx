@@ -73,7 +73,8 @@ function PasswordInput({
 }
 
 export default function IntegrationsPage() {
-  const { org } = useAuthStore()
+  const { org, user } = useAuthStore()
+  const orgId = org?.id || user?.orgId || ''
   const qc = useQueryClient()
   const [channel, setChannel] = useState('')
   const [channelSaved, setChannelSaved] = useState(false)
@@ -615,7 +616,7 @@ export default function IntegrationsPage() {
             <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs text-blue-800">
               <p className="mb-1 font-semibold">Webhook endpoint URL (enter this in your Zoom app → Access → Event Subscription)</p>
               <code className="break-all font-mono">
-                {process.env.NEXT_PUBLIC_API_URL || 'https://shoutout-api.figtree-development.net'}/api/zoom/commands/{org?.id}
+                {process.env.NEXT_PUBLIC_API_URL || 'https://shoutout-api.figtree-development.net'}/api/zoom/commands/{orgId}
               </code>
               <p className="mt-1 text-blue-600">Subscribe to the <strong>Team Chat DM Message Posted</strong> event.</p>
             </div>
@@ -676,7 +677,7 @@ export default function IntegrationsPage() {
                 />
               </div>
             </div>
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
               <Button
                 variant="primary"
                 size="sm"
@@ -686,6 +687,16 @@ export default function IntegrationsPage() {
               >
                 Save credentials
               </Button>
+              {zoomAppConfig && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<ExternalLink size={14} />}
+                  onClick={handleConnectZoom}
+                >
+                  Connect Zoom
+                </Button>
+              )}
               <button
                 onClick={() => {
                   setShowZoomConfigForm(false)
