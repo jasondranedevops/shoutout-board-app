@@ -317,7 +317,13 @@ export default function IntegrationsPage() {
                   Connect Slack
                 </Button>
                 <button
-                  onClick={() => setShowSlackConfigForm((v) => !v)}
+                  onClick={() => {
+                    setSlackConfigForm((f) => ({
+                      ...f,
+                      clientId: slackAppConfig?.clientId ?? '',
+                    }))
+                    setShowSlackConfigForm((v) => !v)
+                  }}
                   className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
                 >
                   <Settings size={12} /> Edit credentials
@@ -328,7 +334,13 @@ export default function IntegrationsPage() {
                 variant="outline"
                 size="sm"
                 icon={<Settings size={14} />}
-                onClick={() => setShowSlackConfigForm((v) => !v)}
+                onClick={() => {
+                  setSlackConfigForm((f) => ({
+                    ...f,
+                    clientId: slackAppConfig?.clientId ?? '',
+                  }))
+                  setShowSlackConfigForm((v) => !v)
+                }}
               >
                 Configure
               </Button>
@@ -555,7 +567,14 @@ export default function IntegrationsPage() {
                   Connect Zoom
                 </Button>
                 <button
-                  onClick={() => setShowZoomConfigForm((v) => !v)}
+                  onClick={() => {
+                    setZoomConfigForm((f) => ({
+                      ...f,
+                      clientId: zoomAppConfig?.clientId ?? '',
+                      botJid: zoomAppConfig?.botJid ?? '',
+                    }))
+                    setShowZoomConfigForm((v) => !v)
+                  }}
                   className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
                 >
                   <Settings size={12} /> Edit credentials
@@ -566,7 +585,14 @@ export default function IntegrationsPage() {
                 variant="outline"
                 size="sm"
                 icon={<Settings size={14} />}
-                onClick={() => setShowZoomConfigForm((v) => !v)}
+                onClick={() => {
+                  setZoomConfigForm((f) => ({
+                    ...f,
+                    clientId: zoomAppConfig?.clientId ?? '',
+                    botJid: zoomAppConfig?.botJid ?? '',
+                  }))
+                  setShowZoomConfigForm((v) => !v)
+                }}
               >
                 Configure
               </Button>
