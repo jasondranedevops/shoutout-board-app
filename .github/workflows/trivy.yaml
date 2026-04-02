@@ -3,11 +3,16 @@
 #
 # Three jobs:
 #
-#   trivy-fs      — scans source code and npm dependencies for CVEs and secrets.
-#   trivy-config  — scans Dockerfiles for misconfigurations.
-#   trivy-images  — scans built backend + frontend images for CVEs.
+#   trivy-fs      — scans source code and npm dependencies for CVEs.
+#                   On push/nightly: saves JSON to security/trivy/fs-scan.json
 #
-# Results are printed as a table in the Actions log.
+#   trivy-config  — scans Dockerfiles for misconfigurations.
+#                   On push/nightly: saves JSON to security/trivy/config-scan.json
+#
+#   trivy-images  — scans built backend + frontend images for CVEs (report only,
+#                   not committed — runtime image scanning is handled by
+#                   trivy-operator in the cluster, visible in Grafana).
+#
 # HIGH/CRITICAL findings fail PRs; push/nightly reports but does not block.
 
 name: Trivy Security Scan
@@ -21,7 +26,7 @@ on:
     - cron: "0 3 * * *" # 03:00 UTC nightly
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   # ── Filesystem / dependency CVE scan ──────────────────────────────────────
@@ -43,7 +48,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-      - name: Run Trivy filesystem scan (push/schedule — report only)
+      - name: Run Trivy filesystem scan (push/schedule — table)
         if: github.event_name == 'push' || github.event_name == 'schedule'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
@@ -53,14 +58,37 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "0"
 
+      - name: Run Trivy filesystem scan (push/schedule — JSON)
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: json
+          output: security/trivy/fs-scan.json
+          severity: HIGH,CRITICAL
+
+      - name: Commit fs scan results
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add security/trivy/fs-scan.json
+          git diff --staged --quiet || (git commit -m "ci: update Trivy fs scan results [skip ci]" && git push)
+
   # ── Dockerfile misconfiguration scan ──────────────────────────────────────
   trivy-config:
     name: Config & Dockerfile Scan
     runs-on: ubuntu-latest
+    # Run after trivy-fs to avoid concurrent git push conflicts
+    needs: trivy-fs
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Pull the latest commit (trivy-fs may have just pushed)
+          ref: ${{ github.ref }}
 
       - name: Run Trivy config scan (PR — fail on HIGH/CRITICAL)
         if: github.event_name == 'pull_request'
@@ -72,7 +100,7 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-      - name: Run Trivy config scan (push/schedule — report only)
+      - name: Run Trivy config scan (push/schedule — table)
         if: github.event_name == 'push' || github.event_name == 'schedule'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
@@ -81,6 +109,25 @@ jobs:
           format: table
           severity: HIGH,CRITICAL
           exit-code: "0"
+
+      - name: Run Trivy config scan (push/schedule — JSON)
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        uses: aquasecurity/trivy-action@v0.35.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: json
+          output: security/trivy/config-scan.json
+          severity: HIGH,CRITICAL
+
+      - name: Commit config scan results
+        if: github.event_name == 'push' || github.event_name == 'schedule'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --rebase
+          git add security/trivy/config-scan.json
+          git diff --staged --quiet || (git commit -m "ci: update Trivy config scan results [skip ci]" && git push)
 
   # ── Container image CVE scan ───────────────────────────────────────────────
   trivy-images:
