@@ -3,18 +3,12 @@
 #
 # Three jobs:
 #
-#   trivy-fs      — scans source code and dependencies (npm) for known CVEs
-#                   and secrets on every PR and push to main.
+#   trivy-fs      — scans source code and npm dependencies for CVEs and secrets.
+#   trivy-config  — scans Dockerfiles for misconfigurations.
+#   trivy-images  — scans built backend + frontend images for CVEs.
 #
-#   trivy-config  — scans Dockerfiles for misconfigurations on every PR
-#                   and push to main.
-#
-#   trivy-images  — scans the built backend and frontend container images
-#                   for CVEs. Runs on push to main only (images must be
-#                   built and pushed before this runs).
-#
-# Severity gate: HIGH and CRITICAL findings fail the build.
-# MEDIUM and below are reported but do not block merges.
+# Results are printed as a table in the Actions log.
+# HIGH/CRITICAL findings fail PRs; push/nightly reports but does not block.
 
 name: Trivy Security Scan
 
@@ -24,14 +18,13 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: "0 3 * * *" # 03:00 UTC nightly (offset from infra scan at 02:00)
+    - cron: "0 3 * * *" # 03:00 UTC nightly
 
 permissions:
   contents: read
-  security-events: write # required for SARIF upload on push/schedule
 
 jobs:
-  # ── Filesystem / dependency CVE scan ─────────────────────────────────────
+  # ── Filesystem / dependency CVE scan ──────────────────────────────────────
   trivy-fs:
     name: Filesystem & Dependency Scan
     runs-on: ubuntu-latest
@@ -40,7 +33,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Trivy filesystem scan (table — PR)
+      - name: Run Trivy filesystem scan (PR — fail on HIGH/CRITICAL)
         if: github.event_name == 'pull_request'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
@@ -50,22 +43,15 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-      - name: Run Trivy filesystem scan (SARIF — main/schedule)
+      - name: Run Trivy filesystem scan (push/schedule — report only)
         if: github.event_name == 'push' || github.event_name == 'schedule'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: fs
           scan-ref: .
-          format: sarif
-          output: trivy-fs.sarif
+          format: table
           severity: HIGH,CRITICAL
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: (github.event_name == 'push' || github.event_name == 'schedule') && always()
-        with:
-          sarif_file: trivy-fs.sarif
-          category: trivy-fs
+          exit-code: "0"
 
   # ── Dockerfile misconfiguration scan ──────────────────────────────────────
   trivy-config:
@@ -76,7 +62,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Run Trivy config scan (table — PR)
+      - name: Run Trivy config scan (PR — fail on HIGH/CRITICAL)
         if: github.event_name == 'pull_request'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
@@ -86,22 +72,15 @@ jobs:
           severity: HIGH,CRITICAL
           exit-code: "1"
 
-      - name: Run Trivy config scan (SARIF — main/schedule)
+      - name: Run Trivy config scan (push/schedule — report only)
         if: github.event_name == 'push' || github.event_name == 'schedule'
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: config
           scan-ref: .
-          format: sarif
-          output: trivy-config.sarif
+          format: table
           severity: HIGH,CRITICAL
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: (github.event_name == 'push' || github.event_name == 'schedule') && always()
-        with:
-          sarif_file: trivy-config.sarif
-          category: trivy-config
+          exit-code: "0"
 
   # ── Container image CVE scan ───────────────────────────────────────────────
   trivy-images:
@@ -132,20 +111,13 @@ jobs:
           username: ${{ secrets.REGISTRY_USERNAME }}
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
-      - name: Run Trivy image scan — ${{ matrix.name }}
+      - name: Run Trivy image scan — ${{ matrix.name }} (report only)
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: image
           # Update matrix tags above when bumping image versions.
           image-ref: ${{ matrix.image }}:${{ matrix.tag }}
-          format: sarif
-          output: trivy-image.sarif
+          format: table
           severity: HIGH,CRITICAL
+          exit-code: "0"
           ignore-unfixed: false
-
-      - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-image.sarif
-          category: trivy-image-${{ matrix.name }}
