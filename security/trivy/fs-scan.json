@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d5415-39ec-737d-89e4-4946352a5f05",
-  "CreatedAt": "2026-04-03T16:02:50.476231036Z",
-  "ArtifactID": "sha256:2f25fc30f85a006b137f2193522c295a01760c23797bf348d01157bb650e699b",
+  "ReportID": "019d5445-2c25-794d-9f2f-bb49aad8fce8",
+  "CreatedAt": "2026-04-03T16:55:12.677610937Z",
+  "ArtifactID": "sha256:f6d82ced8e88685efffe06fcd9955093394e7cacf6396d64d02388dc6585b7e1",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "81e95fecdb5d15bc2eba5142b4c753dd82975b2e",
-    "CommitMsg": "fix(cve): remove npm from runtime images and fix explicit COPY in Dockerfiles\n\nBackend (0.1.14):\n- Remove npm after npm ci -- npm 10 bundles picomatch 4.0.3 (CVE-2026-33671)\n  and is not needed at runtime; Node remains for running the app\n- Fix COPY to explicit package.json + package-lock.json (glob was unreliable\n  with BuildKit in some environments)\n\nFrontend (0.1.18):\n- Same npm removal in runner stage\n- Fix COPY to explicit filenames in deps stage\n- Regenerate package-lock.json (remove stale picomatch override entry)\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
-    "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
-    "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
+    "Commit": "304d9e1ec3ecc7f39d4af91db167c8c0ec74fdb3",
+    "CommitMsg": "Merge pull request #2 from jasondranedevops/claude/thirsty-nightingale\n\nfix(backend): fastify v5 migration + Slack OAuth fixes",
+    "Author": "jason drane \u003cjddevops@dranefamily.com\u003e",
+    "Committer": "GitHub \u003cnoreply@github.com\u003e"
   },
   "Results": [
     {
