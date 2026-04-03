@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d533f-2a10-761b-ba8a-a219dc1bc15e",
-  "CreatedAt": "2026-04-03T12:09:01.712401662Z",
-  "ArtifactID": "sha256:c2bf60a866e142aa0c81230b74ed4b78fdcf04965313d9748fff7fb7fe38d843",
+  "ReportID": "019d5341-2d41-7110-93ff-300415d541fc",
+  "CreatedAt": "2026-04-03T12:11:13.601070847Z",
+  "ArtifactID": "sha256:9f60e0dac78f4c6387fb7e6c90fa8a766d97bba9f5222beb6e831b070a069c92",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "0be7260cc766ed69dae69b5896386c69701858e1",
-    "CommitMsg": "fix(security): upgrade shoutout to node:22 + apk upgrade for OpenSSL CVE-2025-15467\n\n- frontend: node:20-alpine → node:22-alpine (all 3 stages)\n- frontend: add `apk upgrade --no-cache` in runner stage\n- backend: add `apk upgrade --no-cache` alongside openssl install\n- Builds will produce 0.1.13 (backend) and 0.1.17 (frontend)\n- Trivy workflow matrix updated to match new tags\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "80b00c61047528fe981fa8e4f79e6a59e6fe736d",
+    "CommitMsg": "fix(ci): use --autostash on git pull in trivy-config commit step\n\nTrivy writes config-scan.json before the pull, leaving it unstaged\nand causing `git pull --rebase` to error with exit 128.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
