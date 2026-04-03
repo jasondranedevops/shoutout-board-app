@@ -1,5 +1,5 @@
 # ── Stage 1: Build ─────────────────────────────────────────────────────────────
-FROM node:20-alpine AS builder
+FROM --platform=linux/amd64 node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -30,14 +30,14 @@ RUN node -e " \
 
 
 # ── Stage 2: Production runtime ────────────────────────────────────────────────
-FROM node:20-alpine AS runner
+FROM --platform=linux/amd64 node:22-alpine AS runner
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-# OpenSSL is required by Prisma query engine on Alpine
-RUN apk add --no-cache openssl
+# Upgrade all Alpine packages to pick up latest security patches, then add OpenSSL for Prisma
+RUN apk upgrade --no-cache && apk add --no-cache openssl
 
 RUN addgroup -g 1001 -S nodejs && adduser -S fastify -u 1001
 

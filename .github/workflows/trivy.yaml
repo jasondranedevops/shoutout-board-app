@@ -125,7 +125,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
+          git pull --rebase --autostash
           git add security/trivy/config-scan.json
           git diff --staged --quiet || (git commit -m "ci: update Trivy config scan results [skip ci]" && git push)
 
@@ -141,10 +141,10 @@ jobs:
       matrix:
         include:
           - image: dockreg.figtree-development.com/shoutout-backend
-            tag: "0.1.11"
+            tag: "0.1.13"
             name: shoutout-backend
           - image: dockreg.figtree-development.com/shoutout-frontend
-            tag: "0.1.15"
+            tag: "0.1.17"
             name: shoutout-frontend
 
     steps:
