@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d53a4-8f3b-7f3b-b45c-3d33adeb917a",
-  "CreatedAt": "2026-04-03T13:59:46.747999752Z",
-  "ArtifactID": "sha256:01395bbd085d2e72cd390c35662e6174bdc688d54a2843ac2dc99e7ab2eb79ee",
+  "ReportID": "019d5415-39ec-737d-89e4-4946352a5f05",
+  "CreatedAt": "2026-04-03T16:02:50.476231036Z",
+  "ArtifactID": "sha256:2f25fc30f85a006b137f2193522c295a01760c23797bf348d01157bb650e699b",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "ed1eca3a70bd57d6a1365000c85b66e677529639",
-    "CommitMsg": "fix(docker): pin all FROM stages to --platform=linux/amd64\n\nCluster nodes are amd64. Building on Apple Silicon (arm64) without\nan explicit platform produced arm64 images that failed at runtime\nwith \"exec format error\". Adding --platform to each FROM stage\nensures correct architecture regardless of build host.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "81e95fecdb5d15bc2eba5142b4c753dd82975b2e",
+    "CommitMsg": "fix(cve): remove npm from runtime images and fix explicit COPY in Dockerfiles\n\nBackend (0.1.14):\n- Remove npm after npm ci -- npm 10 bundles picomatch 4.0.3 (CVE-2026-33671)\n  and is not needed at runtime; Node remains for running the app\n- Fix COPY to explicit package.json + package-lock.json (glob was unreliable\n  with BuildKit in some environments)\n\nFrontend (0.1.18):\n- Same npm removal in runner stage\n- Fix COPY to explicit filenames in deps stage\n- Regenerate package-lock.json (remove stale picomatch override entry)\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
@@ -70,35 +70,11 @@
           "AnalyzedBy": "npm"
         },
         {
-          "ID": "@types/react@18.3.28",
-          "Name": "@types/react",
-          "Identifier": {
-            "PURL": "pkg:npm/%40types/react@18.3.28",
-            "UID": "b240460fed3334b7"
-          },
-          "Version": "18.3.28",
-          "Licenses": [
-            "MIT"
-          ],
-          "Relationship": "direct",
-          "DependsOn": [
-            "@types/prop-types@15.7.15",
-            "csstype@3.2.3"
-          ],
-          "Locations": [
-            {
-              "StartLine": 1352,
-              "EndLine": 1362
-            }
-          ],
-          "AnalyzedBy": "npm"
-        },
-        {
           "ID": "axios@1.14.0",
           "Name": "axios",
           "Identifier": {
             "PURL": "pkg:npm/axios@1.14.0",
-            "UID": "151ba0cb1dfef940"
+            "UID": "6020998de22549b5"
           },
           "Version": "1.14.0",
           "Licenses": [
@@ -112,8 +88,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2312,
-              "EndLine": 2322
+              "StartLine": 2325,
+              "EndLine": 2335
             }
           ],
           "AnalyzedBy": "npm"
@@ -123,7 +99,7 @@
           "Name": "clsx",
           "Identifier": {
             "PURL": "pkg:npm/clsx@2.1.1",
-            "UID": "ae13174214b5f08e"
+            "UID": "34e785a13b09f52d"
           },
           "Version": "2.1.1",
           "Licenses": [
@@ -132,8 +108,8 @@
           "Relationship": "direct",
           "Locations": [
             {
-              "StartLine": 2573,
-              "EndLine": 2581
+              "StartLine": 2586,
+              "EndLine": 2594
             }
           ],
           "AnalyzedBy": "npm"
@@ -143,7 +119,7 @@
           "Name": "lucide-react",
           "Identifier": {
             "PURL": "pkg:npm/lucide-react@0.383.0",
-            "UID": "deb0d94ce122055d"
+            "UID": "839ec49dbf82f824"
           },
           "Version": "0.383.0",
           "Licenses": [
@@ -155,8 +131,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4783,
-              "EndLine": 4791
+              "StartLine": 4796,
+              "EndLine": 4804
             }
           ],
           "AnalyzedBy": "npm"
@@ -166,7 +142,7 @@
           "Name": "next",
           "Identifier": {
             "PURL": "pkg:npm/next@16.2.2",
-            "UID": "cc0e0fa868174eca"
+            "UID": "a5404250396016b0"
           },
           "Version": "16.2.2",
           "Licenses": [
@@ -194,8 +170,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4929,
-              "EndLine": 4981
+              "StartLine": 4955,
+              "EndLine": 5007
             }
           ],
           "AnalyzedBy": "npm"
@@ -205,7 +181,7 @@
           "Name": "react",
           "Identifier": {
             "PURL": "pkg:npm/react@18.3.1",
-            "UID": "55c15a52a0f9f936"
+            "UID": "6e1289ae856a7efb"
           },
           "Version": "18.3.1",
           "Licenses": [
@@ -217,8 +193,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 5591,
-              "EndLine": 5602
+              "StartLine": 5617,
+              "EndLine": 5628
             }
           ],
           "AnalyzedBy": "npm"
@@ -228,7 +204,7 @@
           "Name": "react-dom",
           "Identifier": {
             "PURL": "pkg:npm/react-dom@18.3.1",
-            "UID": "1f4e8a3623ecdfab"
+            "UID": "d71529b8fc1ba11d"
           },
           "Version": "18.3.1",
           "Licenses": [
@@ -242,8 +218,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 5603,
-              "EndLine": 5615
+              "StartLine": 5629,
+              "EndLine": 5641
             }
           ],
           "AnalyzedBy": "npm"
@@ -253,7 +229,7 @@
           "Name": "react-hook-form",
           "Identifier": {
             "PURL": "pkg:npm/react-hook-form@7.72.0",
-            "UID": "3ab9c7adc8ab8b29"
+            "UID": "421109da95641c1"
           },
           "Version": "7.72.0",
           "Licenses": [
@@ -265,8 +241,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 5616,
-              "EndLine": 5631
+              "StartLine": 5642,
+              "EndLine": 5657
             }
           ],
           "AnalyzedBy": "npm"
@@ -276,7 +252,7 @@
           "Name": "zod",
           "Identifier": {
             "PURL": "pkg:npm/zod@3.25.76",
-            "UID": "3e61a8c145f9a794"
+            "UID": "d33a3f4c8329d9da"
           },
           "Version": "3.25.76",
           "Licenses": [
@@ -285,8 +261,8 @@
           "Relationship": "direct",
           "Locations": [
             {
-              "StartLine": 6912,
-              "EndLine": 6920
+              "StartLine": 6938,
+              "EndLine": 6946
             }
           ],
           "AnalyzedBy": "npm"
@@ -296,7 +272,7 @@
           "Name": "zustand",
           "Identifier": {
             "PURL": "pkg:npm/zustand@4.5.7",
-            "UID": "9ed507505a272540"
+            "UID": "c6fddcd0075bf56f"
           },
           "Version": "4.5.7",
           "Licenses": [
@@ -310,8 +286,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 6934,
-              "EndLine": 6961
+              "StartLine": 6960,
+              "EndLine": 6987
             }
           ],
           "AnalyzedBy": "npm"
@@ -1133,32 +1109,11 @@
           "AnalyzedBy": "npm"
         },
         {
-          "ID": "@types/prop-types@15.7.15",
-          "Name": "@types/prop-types",
-          "Identifier": {
-            "PURL": "pkg:npm/%40types/prop-types@15.7.15",
-            "UID": "19c381805ad1f611"
-          },
-          "Version": "15.7.15",
-          "Licenses": [
-            "MIT"
-          ],
-          "Indirect": true,
-          "Relationship": "indirect",
-          "Locations": [
-            {
-              "StartLine": 1345,
-              "EndLine": 1351
-            }
-          ],
-          "AnalyzedBy": "npm"
-        },
-        {
           "ID": "asynckit@0.4.0",
           "Name": "asynckit",
           "Identifier": {
             "PURL": "pkg:npm/asynckit@0.4.0",
-            "UID": "dc767a57f08220a3"
+            "UID": "a8a8ee3ac1a2d07b"
           },
           "Version": "0.4.0",
           "Licenses": [
@@ -1168,8 +1123,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2243,
-              "EndLine": 2248
+              "StartLine": 2256,
+              "EndLine": 2261
             }
           ],
           "AnalyzedBy": "npm"
@@ -1179,7 +1134,7 @@
           "Name": "baseline-browser-mapping",
           "Identifier": {
             "PURL": "pkg:npm/baseline-browser-mapping@2.10.12",
-            "UID": "b506d438c359ac08"
+            "UID": "97ae718abf0dc10e"
           },
           "Version": "2.10.12",
           "Licenses": [
@@ -1189,8 +1144,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2340,
-              "EndLine": 2351
+              "StartLine": 2353,
+              "EndLine": 2364
             }
           ],
           "AnalyzedBy": "npm"
@@ -1200,7 +1155,7 @@
           "Name": "call-bind-apply-helpers",
           "Identifier": {
             "PURL": "pkg:npm/call-bind-apply-helpers@1.0.2",
-            "UID": "b7c3b436e20cc77f"
+            "UID": "bd47094f9298adb7"
           },
           "Version": "1.0.2",
           "Licenses": [
@@ -1214,8 +1169,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2442,
-              "EndLine": 2454
+              "StartLine": 2455,
+              "EndLine": 2467
             }
           ],
           "AnalyzedBy": "npm"
@@ -1225,7 +1180,7 @@
           "Name": "caniuse-lite",
           "Identifier": {
             "PURL": "pkg:npm/caniuse-lite@1.0.30001781",
-            "UID": "20fb641e415802f5"
+            "UID": "b2669d66d8cdcb"
           },
           "Version": "1.0.30001781",
           "Licenses": [
@@ -1235,8 +1190,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2492,
-              "EndLine": 2511
+              "StartLine": 2505,
+              "EndLine": 2524
             }
           ],
           "AnalyzedBy": "npm"
@@ -1246,7 +1201,7 @@
           "Name": "client-only",
           "Identifier": {
             "PURL": "pkg:npm/client-only@0.0.1",
-            "UID": "98df8dab24f21bf6"
+            "UID": "7122a4b75c3f9128"
           },
           "Version": "0.0.1",
           "Licenses": [
@@ -1256,8 +1211,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2567,
-              "EndLine": 2572
+              "StartLine": 2580,
+              "EndLine": 2585
             }
           ],
           "AnalyzedBy": "npm"
@@ -1267,7 +1222,7 @@
           "Name": "combined-stream",
           "Identifier": {
             "PURL": "pkg:npm/combined-stream@1.0.8",
-            "UID": "8adfe91b2d6da14c"
+            "UID": "66f09d4b9a3689b"
           },
           "Version": "1.0.8",
           "Licenses": [
@@ -1280,29 +1235,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2602,
-              "EndLine": 2613
-            }
-          ],
-          "AnalyzedBy": "npm"
-        },
-        {
-          "ID": "csstype@3.2.3",
-          "Name": "csstype",
-          "Identifier": {
-            "PURL": "pkg:npm/csstype@3.2.3",
-            "UID": "926abc968f09ad08"
-          },
-          "Version": "3.2.3",
-          "Licenses": [
-            "MIT"
-          ],
-          "Indirect": true,
-          "Relationship": "indirect",
-          "Locations": [
-            {
-              "StartLine": 2666,
-              "EndLine": 2672
+              "StartLine": 2615,
+              "EndLine": 2626
             }
           ],
           "AnalyzedBy": "npm"
@@ -1312,7 +1246,7 @@
           "Name": "delayed-stream",
           "Identifier": {
             "PURL": "pkg:npm/delayed-stream@1.0.0",
-            "UID": "8ba4ac71fe466285"
+            "UID": "b7a10f65a606c832"
           },
           "Version": "1.0.0",
           "Licenses": [
@@ -1322,8 +1256,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2795,
-              "EndLine": 2803
+              "StartLine": 2808,
+              "EndLine": 2816
             }
           ],
           "AnalyzedBy": "npm"
@@ -1333,7 +1267,7 @@
           "Name": "detect-libc",
           "Identifier": {
             "PURL": "pkg:npm/detect-libc@2.1.2",
-            "UID": "e13ed7cf1e2a1c5"
+            "UID": "3e2df13ef4473f3"
           },
           "Version": "2.1.2",
           "Licenses": [
@@ -1343,8 +1277,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2804,
-              "EndLine": 2813
+              "StartLine": 2817,
+              "EndLine": 2826
             }
           ],
           "AnalyzedBy": "npm"
@@ -1354,7 +1288,7 @@
           "Name": "dunder-proto",
           "Identifier": {
             "PURL": "pkg:npm/dunder-proto@1.0.1",
-            "UID": "7388a9305f94282b"
+            "UID": "41dd554abbf0f366"
           },
           "Version": "1.0.1",
           "Licenses": [
@@ -1369,8 +1303,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2841,
-              "EndLine": 2854
+              "StartLine": 2854,
+              "EndLine": 2867
             }
           ],
           "AnalyzedBy": "npm"
@@ -1380,7 +1314,7 @@
           "Name": "es-define-property",
           "Identifier": {
             "PURL": "pkg:npm/es-define-property@1.0.1",
-            "UID": "960984ef13958c9b"
+            "UID": "70eb4eee4acbfc64"
           },
           "Version": "1.0.1",
           "Licenses": [
@@ -1390,8 +1324,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2938,
-              "EndLine": 2946
+              "StartLine": 2951,
+              "EndLine": 2959
             }
           ],
           "AnalyzedBy": "npm"
@@ -1401,7 +1335,7 @@
           "Name": "es-errors",
           "Identifier": {
             "PURL": "pkg:npm/es-errors@1.3.0",
-            "UID": "732006012ede3629"
+            "UID": "5dd0a4d4cea4549a"
           },
           "Version": "1.3.0",
           "Licenses": [
@@ -1411,8 +1345,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 2947,
-              "EndLine": 2955
+              "StartLine": 2960,
+              "EndLine": 2968
             }
           ],
           "AnalyzedBy": "npm"
@@ -1422,7 +1356,7 @@
           "Name": "es-object-atoms",
           "Identifier": {
             "PURL": "pkg:npm/es-object-atoms@1.1.1",
-            "UID": "8db82436165eea6c"
+            "UID": "3c4598ee27b5a7c2"
           },
           "Version": "1.1.1",
           "Licenses": [
@@ -1435,8 +1369,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2985,
-              "EndLine": 2996
+              "StartLine": 2998,
+              "EndLine": 3009
             }
           ],
           "AnalyzedBy": "npm"
@@ -1446,7 +1380,7 @@
           "Name": "es-set-tostringtag",
           "Identifier": {
             "PURL": "pkg:npm/es-set-tostringtag@2.1.0",
-            "UID": "acdda931d1b8d9d4"
+            "UID": "7a4221d944737baf"
           },
           "Version": "2.1.0",
           "Licenses": [
@@ -1462,8 +1396,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 2997,
-              "EndLine": 3011
+              "StartLine": 3010,
+              "EndLine": 3024
             }
           ],
           "AnalyzedBy": "npm"
@@ -1473,7 +1407,7 @@
           "Name": "follow-redirects",
           "Identifier": {
             "PURL": "pkg:npm/follow-redirects@1.15.11",
-            "UID": "e8608278c183a16e"
+            "UID": "4b462d0e362a158e"
           },
           "Version": "1.15.11",
           "Licenses": [
@@ -1483,8 +1417,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 3665,
-              "EndLine": 3684
+              "StartLine": 3678,
+              "EndLine": 3697
             }
           ],
           "AnalyzedBy": "npm"
@@ -1494,7 +1428,7 @@
           "Name": "form-data",
           "Identifier": {
             "PURL": "pkg:npm/form-data@4.0.5",
-            "UID": "b3b3a3b014b130fe"
+            "UID": "9686b71e75bef11a"
           },
           "Version": "4.0.5",
           "Licenses": [
@@ -1511,8 +1445,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 3701,
-              "EndLine": 3716
+              "StartLine": 3714,
+              "EndLine": 3729
             }
           ],
           "AnalyzedBy": "npm"
@@ -1522,7 +1456,7 @@
           "Name": "function-bind",
           "Identifier": {
             "PURL": "pkg:npm/function-bind@1.1.2",
-            "UID": "5f07fe0a4a095f05"
+            "UID": "3c74e469e483d0fb"
           },
           "Version": "1.1.2",
           "Licenses": [
@@ -1532,8 +1466,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 3753,
-              "EndLine": 3761
+              "StartLine": 3766,
+              "EndLine": 3774
             }
           ],
           "AnalyzedBy": "npm"
@@ -1543,7 +1477,7 @@
           "Name": "get-intrinsic",
           "Identifier": {
             "PURL": "pkg:npm/get-intrinsic@1.3.0",
-            "UID": "4e6e9f5b9e9256c1"
+            "UID": "5c2a715d63c36cb9"
           },
           "Version": "1.3.0",
           "Licenses": [
@@ -1565,8 +1499,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 3813,
-              "EndLine": 3836
+              "StartLine": 3826,
+              "EndLine": 3849
             }
           ],
           "AnalyzedBy": "npm"
@@ -1576,7 +1510,7 @@
           "Name": "get-proto",
           "Identifier": {
             "PURL": "pkg:npm/get-proto@1.0.1",
-            "UID": "bbf607fd1051342a"
+            "UID": "c33754b328e576f6"
           },
           "Version": "1.0.1",
           "Licenses": [
@@ -1590,8 +1524,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 3837,
-              "EndLine": 3849
+              "StartLine": 3850,
+              "EndLine": 3862
             }
           ],
           "AnalyzedBy": "npm"
@@ -1601,7 +1535,7 @@
           "Name": "gopd",
           "Identifier": {
             "PURL": "pkg:npm/gopd@1.2.0",
-            "UID": "fc6511a460b35b6e"
+            "UID": "3d56410b46c811ed"
           },
           "Version": "1.2.0",
           "Licenses": [
@@ -1611,8 +1545,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 3927,
-              "EndLine": 3938
+              "StartLine": 3940,
+              "EndLine": 3951
             }
           ],
           "AnalyzedBy": "npm"
@@ -1622,7 +1556,7 @@
           "Name": "has-symbols",
           "Identifier": {
             "PURL": "pkg:npm/has-symbols@1.1.0",
-            "UID": "8a0b53500bcb3b76"
+            "UID": "4c0ac81461ba26b7"
           },
           "Version": "1.1.0",
           "Licenses": [
@@ -1632,8 +1566,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 3998,
-              "EndLine": 4009
+              "StartLine": 4011,
+              "EndLine": 4022
             }
           ],
           "AnalyzedBy": "npm"
@@ -1643,7 +1577,7 @@
           "Name": "has-tostringtag",
           "Identifier": {
             "PURL": "pkg:npm/has-tostringtag@1.0.2",
-            "UID": "bd8ba4042daf1e3c"
+            "UID": "ba2d2bef58b42625"
           },
           "Version": "1.0.2",
           "Licenses": [
@@ -1656,8 +1590,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4010,
-              "EndLine": 4024
+              "StartLine": 4023,
+              "EndLine": 4037
             }
           ],
           "AnalyzedBy": "npm"
@@ -1667,7 +1601,7 @@
           "Name": "hasown",
           "Identifier": {
             "PURL": "pkg:npm/hasown@2.0.2",
-            "UID": "93d80f03d9bd494a"
+            "UID": "531e6acafc4ed14e"
           },
           "Version": "2.0.2",
           "Licenses": [
@@ -1680,8 +1614,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4025,
-              "EndLine": 4036
+              "StartLine": 4038,
+              "EndLine": 4049
             }
           ],
           "AnalyzedBy": "npm"
@@ -1691,7 +1625,7 @@
           "Name": "js-tokens",
           "Identifier": {
             "PURL": "pkg:npm/js-tokens@4.0.0",
-            "UID": "f2ec9cc80016ea9f"
+            "UID": "f0b3c4199e8696fa"
           },
           "Version": "4.0.0",
           "Licenses": [
@@ -1701,8 +1635,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 4592,
-              "EndLine": 4597
+              "StartLine": 4605,
+              "EndLine": 4610
             }
           ],
           "AnalyzedBy": "npm"
@@ -1712,7 +1646,7 @@
           "Name": "loose-envify",
           "Identifier": {
             "PURL": "pkg:npm/loose-envify@1.4.0",
-            "UID": "7179078c0d1b8dca"
+            "UID": "fc36ddf2a74700a3"
           },
           "Version": "1.4.0",
           "Licenses": [
@@ -1725,8 +1659,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4761,
-              "EndLine": 4772
+              "StartLine": 4774,
+              "EndLine": 4785
             }
           ],
           "AnalyzedBy": "npm"
@@ -1736,7 +1670,7 @@
           "Name": "math-intrinsics",
           "Identifier": {
             "PURL": "pkg:npm/math-intrinsics@1.1.0",
-            "UID": "a7fb3420524fba3d"
+            "UID": "d17b82d0a56e9ea8"
           },
           "Version": "1.1.0",
           "Licenses": [
@@ -1746,8 +1680,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 4792,
-              "EndLine": 4800
+              "StartLine": 4805,
+              "EndLine": 4813
             }
           ],
           "AnalyzedBy": "npm"
@@ -1757,7 +1691,7 @@
           "Name": "mime-db",
           "Identifier": {
             "PURL": "pkg:npm/mime-db@1.52.0",
-            "UID": "c09cf71f65877ba4"
+            "UID": "63313f2645f628cb"
           },
           "Version": "1.52.0",
           "Licenses": [
@@ -1767,8 +1701,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 4825,
-              "EndLine": 4833
+              "StartLine": 4851,
+              "EndLine": 4859
             }
           ],
           "AnalyzedBy": "npm"
@@ -1778,7 +1712,7 @@
           "Name": "mime-types",
           "Identifier": {
             "PURL": "pkg:npm/mime-types@2.1.35",
-            "UID": "28c67c4e276d1240"
+            "UID": "5df74f794615e0c2"
           },
           "Version": "2.1.35",
           "Licenses": [
@@ -1791,8 +1725,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4834,
-              "EndLine": 4845
+              "StartLine": 4860,
+              "EndLine": 4871
             }
           ],
           "AnalyzedBy": "npm"
@@ -1802,7 +1736,7 @@
           "Name": "nanoid",
           "Identifier": {
             "PURL": "pkg:npm/nanoid@3.3.11",
-            "UID": "16812d884cd541cb"
+            "UID": "9bc92e6e2e5cb3f1"
           },
           "Version": "3.3.11",
           "Licenses": [
@@ -1812,8 +1746,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 4888,
-              "EndLine": 4905
+              "StartLine": 4914,
+              "EndLine": 4931
             }
           ],
           "AnalyzedBy": "npm"
@@ -1823,7 +1757,7 @@
           "Name": "picocolors",
           "Identifier": {
             "PURL": "pkg:npm/picocolors@1.1.1",
-            "UID": "ad264d15d3bb447e"
+            "UID": "a9c8ababb5be5db0"
           },
           "Version": "1.1.1",
           "Licenses": [
@@ -1833,8 +1767,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 5317,
-              "EndLine": 5322
+              "StartLine": 5343,
+              "EndLine": 5348
             }
           ],
           "AnalyzedBy": "npm"
@@ -1844,7 +1778,7 @@
           "Name": "postcss",
           "Identifier": {
             "PURL": "pkg:npm/postcss@8.4.31",
-            "UID": "e01c0d92588cd7fe"
+            "UID": "81c30c8a843f9a91"
           },
           "Version": "8.4.31",
           "Licenses": [
@@ -1859,8 +1793,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 4982,
-              "EndLine": 5009
+              "StartLine": 5008,
+              "EndLine": 5035
             }
           ],
           "AnalyzedBy": "npm"
@@ -1870,7 +1804,7 @@
           "Name": "proxy-from-env",
           "Identifier": {
             "PURL": "pkg:npm/proxy-from-env@2.1.0",
-            "UID": "86250c9de865d4d0"
+            "UID": "146a857acb6dc87b"
           },
           "Version": "2.1.0",
           "Licenses": [
@@ -1880,8 +1814,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 5551,
-              "EndLine": 5559
+              "StartLine": 5577,
+              "EndLine": 5585
             }
           ],
           "AnalyzedBy": "npm"
@@ -1891,7 +1825,7 @@
           "Name": "scheduler",
           "Identifier": {
             "PURL": "pkg:npm/scheduler@0.23.2",
-            "UID": "41cc1fcede47d184"
+            "UID": "73a57111929e1e9e"
           },
           "Version": "0.23.2",
           "Licenses": [
@@ -1904,8 +1838,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 5876,
-              "EndLine": 5884
+              "StartLine": 5915,
+              "EndLine": 5923
             }
           ],
           "AnalyzedBy": "npm"
@@ -1915,7 +1849,7 @@
           "Name": "semver",
           "Identifier": {
             "PURL": "pkg:npm/semver@7.7.4",
-            "UID": "8b80fba0639d54"
+            "UID": "eadb4a11545d7357"
           },
           "Version": "7.7.4",
           "Licenses": [
@@ -1925,8 +1859,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 5885,
-              "EndLine": 5897
+              "StartLine": 5924,
+              "EndLine": 5936
             }
           ],
           "AnalyzedBy": "npm"
@@ -1936,7 +1870,7 @@
           "Name": "sharp",
           "Identifier": {
             "PURL": "pkg:npm/sharp@0.34.5",
-            "UID": "67788fee26efc5a7"
+            "UID": "5dc2471aff5b3f6e"
           },
           "Version": "0.34.5",
           "Licenses": [
@@ -1975,8 +1909,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 5947,
-              "EndLine": 5991
+              "StartLine": 5986,
+              "EndLine": 6030
             }
           ],
           "AnalyzedBy": "npm"
@@ -1986,7 +1920,7 @@
           "Name": "source-map-js",
           "Identifier": {
             "PURL": "pkg:npm/source-map-js@1.2.1",
-            "UID": "c0b0ecfc8e48d252"
+            "UID": "4b1d1a13eaa17128"
           },
           "Version": "1.2.1",
           "Licenses": [
@@ -1996,8 +1930,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 6091,
-              "EndLine": 6099
+              "StartLine": 6130,
+              "EndLine": 6138
             }
           ],
           "AnalyzedBy": "npm"
@@ -2007,7 +1941,7 @@
           "Name": "styled-jsx",
           "Identifier": {
             "PURL": "pkg:npm/styled-jsx@5.1.6",
-            "UID": "37736a39d8b4d96c"
+            "UID": "84cfc5634fe0bdb8"
           },
           "Version": "5.1.6",
           "Licenses": [
@@ -2021,8 +1955,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 6270,
-              "EndLine": 6292
+              "StartLine": 6309,
+              "EndLine": 6331
             }
           ],
           "AnalyzedBy": "npm"
@@ -2032,7 +1966,7 @@
           "Name": "tslib",
           "Identifier": {
             "PURL": "pkg:npm/tslib@2.8.1",
-            "UID": "eb5ef7ac1133c425"
+            "UID": "4ff3a16cc43a1194"
           },
           "Version": "2.8.1",
           "Licenses": [
@@ -2042,8 +1976,8 @@
           "Relationship": "indirect",
           "Locations": [
             {
-              "StartLine": 6504,
-              "EndLine": 6509
+              "StartLine": 6530,
+              "EndLine": 6535
             }
           ],
           "AnalyzedBy": "npm"
@@ -2053,7 +1987,7 @@
           "Name": "use-sync-external-store",
           "Identifier": {
             "PURL": "pkg:npm/use-sync-external-store@1.6.0",
-            "UID": "38864d45e9f86b4b"
+            "UID": "81f3edcbcca7394f"
           },
           "Version": "1.6.0",
           "Licenses": [
@@ -2066,8 +2000,8 @@
           ],
           "Locations": [
             {
-              "StartLine": 6754,
-              "EndLine": 6762
+              "StartLine": 6780,
+              "EndLine": 6788
             }
           ],
           "AnalyzedBy": "npm"
