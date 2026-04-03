@@ -1,4 +1,5 @@
 import 'fastify'
+import '@fastify/jwt'
 
 export interface User {
   id: string
@@ -12,6 +13,12 @@ export interface Organization {
   name: string
   slug: string
   plan: 'STARTER' | 'GROWTH' | 'SCALE' | 'ENTERPRISE'
+}
+
+declare module '@fastify/jwt' {
+  interface FastifyJWT {
+    user: User
+  }
 }
 
 declare module 'fastify' {

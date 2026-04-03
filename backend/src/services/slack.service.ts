@@ -191,7 +191,10 @@ export async function notifySlackBoardCreated(
   const appUrl = process.env.APP_URL || 'http://localhost:3000'
   try {
     await postBoardCreatedMessage(installation.botToken, installation.incomingChannel, {
-      ...board,
+      title: board.title,
+      recipientName: board.recipientName,
+      boardSlug: board.slug,
+      occasionType: board.occasionType,
       appUrl,
     })
   } catch (err) {
@@ -209,7 +212,10 @@ export async function notifySlackBoardSent(
   const appUrl = process.env.APP_URL || 'http://localhost:3000'
   try {
     await postBoardSentMessage(installation.botToken, installation.incomingChannel, {
-      ...board,
+      title: board.title,
+      recipientName: board.recipientName,
+      boardSlug: board.slug,
+      postCount: board.postCount,
       appUrl,
     })
   } catch (err) {

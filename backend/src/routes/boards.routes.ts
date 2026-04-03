@@ -57,15 +57,16 @@ export const boardsRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request, reply) => {
-      const limit = Math.min(request.query.limit || 20, 100)
-      const offset = request.query.offset || 0
+      const query = request.query as Record<string, any>
+      const limit = Math.min(query.limit || 20, 100)
+      const offset = query.offset || 0
 
       const boards = await prisma.board.findMany({
         where: {
           orgId: request.org!.id,
-          ...(request.query.status && { status: request.query.status }),
-          ...(request.query.occasionType && {
-            occasionType: request.query.occasionType,
+          ...(query.status && { status: query.status }),
+          ...(query.occasionType && {
+            occasionType: query.occasionType,
           }),
         },
         include: {

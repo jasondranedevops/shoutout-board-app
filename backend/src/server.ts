@@ -29,7 +29,7 @@ const logger = pino(
     : { transport: { target: 'pino-pretty' } }
 )
 
-const app = Fastify({ logger })
+const app = Fastify({ loggerInstance: logger })
 
 const PORT = parseInt(process.env.PORT || '4000', 10)
 const HOST = '0.0.0.0'
@@ -62,14 +62,14 @@ async function main() {
     app.addContentTypeParser(
       'application/x-www-form-urlencoded',
       { parseAs: 'string' },
-      (_req, body, done) => {
+      async (_req: any, body: string) => {
         ;(_req as any).rawBody = body
-        const parsed = new URLSearchParams(body as string)
+        const parsed = new URLSearchParams(body)
         const result: Record<string, string> = {}
         for (const [key, value] of parsed) {
           result[key] = value
         }
-        done(null, result)
+        return result
       }
     )
 

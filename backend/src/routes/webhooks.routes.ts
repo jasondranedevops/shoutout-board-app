@@ -223,7 +223,7 @@ export const webhooksRoutes: FastifyPluginAsync = async (app) => {
         throw new NotFoundError('Webhook')
       }
 
-      const limit = Math.min(request.query.limit || 50, 100)
+      const limit = Math.min((request.query as Record<string, any>).limit || 50, 100)
 
       const deliveries = await prisma.webhookDelivery.findMany({
         where: { webhookId: request.params.id },
