@@ -141,10 +141,10 @@ jobs:
       matrix:
         include:
           - image: dockreg.figtree-development.com/shoutout-backend
-            tag: "0.1.11"
+            tag: "0.1.12"
             name: shoutout-backend
           - image: dockreg.figtree-development.com/shoutout-frontend
-            tag: "0.1.15"
+            tag: "0.1.16"
             name: shoutout-frontend
 
     steps:
