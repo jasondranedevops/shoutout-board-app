@@ -48,8 +48,9 @@ export const postsRoutes: FastifyPluginAsync = async (app) => {
         throw new ForbiddenError()
       }
 
-      const limit = Math.min(request.query.limit || 50, 100)
-      const offset = request.query.offset || 0
+      const query = request.query as Record<string, any>
+      const limit = Math.min(query.limit || 50, 100)
+      const offset = query.offset || 0
 
       const posts = await prisma.post.findMany({
         where: { boardId: request.params.boardId },

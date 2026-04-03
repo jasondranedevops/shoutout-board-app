@@ -186,6 +186,7 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
     }
   )
 
+
   // ── OAuth Install URL (JSON) ───────────────────────────────────────────────
   // Returns the Slack OAuth URL as JSON. Used by the frontend to initiate the
   // install flow without needing to navigate directly (browser can't set headers).
@@ -197,13 +198,8 @@ export const slackRoutes: FastifyPluginAsync = async (app) => {
         JSON.stringify({ orgId: request.org!.id, nonce: nanoid(12) })
       ).toString('base64url')
 
-      const creds = await getSlackCredentials(request.org!.id)
-      if (!creds.clientId) {
-        return reply.status(400).send({ success: false, error: { message: 'Slack app credentials not configured' } })
-      }
-
       const url = new URL('https://slack.com/oauth/v2/authorize')
-      url.searchParams.set('client_id', creds.clientId)
+      url.searchParams.set('client_id', SLACK_CLIENT_ID)
       url.searchParams.set('scope', SLACK_SCOPES)
       url.searchParams.set('redirect_uri', `${API_URL}/api/slack/oauth/callback`)
       url.searchParams.set('state', state)
