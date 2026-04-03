@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d50f4-316b-7674-b6a1-ea26c438e0b6",
-  "CreatedAt": "2026-04-03T01:27:53.963424006Z",
-  "ArtifactID": "sha256:dca8fa7a4c7815dd5865ec1eb3cbf61a08ec5115e089384bdb3dd7c784cd0b43",
+  "ReportID": "019d50f7-f07d-7951-be71-21fb7acee59f",
+  "CreatedAt": "2026-04-03T01:31:59.485611592Z",
+  "ArtifactID": "sha256:f7ec359e381a2687004313fdb22cdcb15482ad1848611c48c623ea73b48da521",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "dbba377f111ec97a1f1f939605d3d8b09d545452",
-    "CommitMsg": "fix(backend): upgrade base image node:20-alpine → node:22-alpine\n\nnode:22 is the current LTS — reduces HIGH CVEs in the alpine base OS packages.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "b01152c6a66a450d7d74eb3a3fdb1e63c5e52d03",
+    "CommitMsg": "ci(trivy): update image scan tags to backend 0.1.12, frontend 0.1.16\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
