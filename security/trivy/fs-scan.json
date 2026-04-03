@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d50f7-f07d-7951-be71-21fb7acee59f",
-  "CreatedAt": "2026-04-03T01:31:59.485611592Z",
-  "ArtifactID": "sha256:f7ec359e381a2687004313fdb22cdcb15482ad1848611c48c623ea73b48da521",
+  "ReportID": "019d51bb-9ae2-7eab-869c-e33e717dcd8c",
+  "CreatedAt": "2026-04-03T05:05:42.62696226Z",
+  "ArtifactID": "sha256:22e02da8d920ec338063778e1374f5afeaed26d4cc79368beb7e378b466b52f0",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "b01152c6a66a450d7d74eb3a3fdb1e63c5e52d03",
-    "CommitMsg": "ci(trivy): update image scan tags to backend 0.1.12, frontend 0.1.16\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
-    "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
-    "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
+    "Commit": "9b32cf062e1615fd9b35ea507afcf497c1843897",
+    "CommitMsg": "ci: update Trivy fs scan results [skip ci]",
+    "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
+    "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
   },
   "Results": [
     {
