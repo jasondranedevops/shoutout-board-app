@@ -1,5 +1,5 @@
 # ── Stage 1: Dependencies ──────────────────────────────────────────────────────
-FROM node:22-alpine AS deps
+FROM --platform=linux/amd64 node:22-alpine AS deps
 
 WORKDIR /app
 
@@ -8,7 +8,7 @@ RUN npm ci
 
 
 # ── Stage 2: Build ─────────────────────────────────────────────────────────────
-FROM node:22-alpine AS builder
+FROM --platform=linux/amd64 node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -29,7 +29,7 @@ RUN npm run build
 
 
 # ── Stage 3: Production runtime ────────────────────────────────────────────────
-FROM node:22-alpine AS runner
+FROM --platform=linux/amd64 node:22-alpine AS runner
 
 WORKDIR /app
 
