@@ -4,7 +4,7 @@ FROM --platform=linux/amd64 node:22-alpine AS builder
 WORKDIR /app
 
 # Install dependencies first (layer caching)
-COPY package*.json ./
+COPY package.json package-lock.json ./
 RUN npm ci
 
 # Copy Prisma schema and generate client
@@ -42,8 +42,11 @@ RUN apk upgrade --no-cache && apk add --no-cache openssl
 RUN addgroup -g 1001 -S nodejs && adduser -S fastify -u 1001
 
 # Production dependencies only
-COPY package*.json ./
-RUN npm ci --omit=dev
+COPY package.json package-lock.json ./
+# Remove npm after install — npm bundles picomatch 4.0.3 (CVE-2026-33671) and is not
+# needed at runtime. Node itself is still present to run the application.
+RUN npm ci --omit=dev \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Copy Prisma (schema + generated client)
 COPY --from=builder /app/prisma ./prisma

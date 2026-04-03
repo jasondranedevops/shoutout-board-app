@@ -3,7 +3,7 @@ FROM --platform=linux/amd64 node:22-alpine AS deps
 
 WORKDIR /app
 
-COPY package*.json .npmrc* ./
+COPY package.json package-lock.json .npmrc* ./
 RUN npm ci
 
 
@@ -36,8 +36,10 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Upgrade all Alpine packages to pick up latest security patches
-RUN apk upgrade --no-cache
+# Upgrade all Alpine packages to pick up latest security patches.
+# Remove npm — it bundles picomatch 4.0.3 (CVE-2026-33671) and is not needed at runtime.
+RUN apk upgrade --no-cache \
+    && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 
