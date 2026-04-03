@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d5341-2d41-7110-93ff-300415d541fc",
-  "CreatedAt": "2026-04-03T12:11:13.601070847Z",
-  "ArtifactID": "sha256:9f60e0dac78f4c6387fb7e6c90fa8a766d97bba9f5222beb6e831b070a069c92",
+  "ReportID": "019d53a4-8f3b-7f3b-b45c-3d33adeb917a",
+  "CreatedAt": "2026-04-03T13:59:46.747999752Z",
+  "ArtifactID": "sha256:01395bbd085d2e72cd390c35662e6174bdc688d54a2843ac2dc99e7ab2eb79ee",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "80b00c61047528fe981fa8e4f79e6a59e6fe736d",
-    "CommitMsg": "fix(ci): use --autostash on git pull in trivy-config commit step\n\nTrivy writes config-scan.json before the pull, leaving it unstaged\nand causing `git pull --rebase` to error with exit 128.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "ed1eca3a70bd57d6a1365000c85b66e677529639",
+    "CommitMsg": "fix(docker): pin all FROM stages to --platform=linux/amd64\n\nCluster nodes are amd64. Building on Apple Silicon (arm64) without\nan explicit platform produced arm64 images that failed at runtime\nwith \"exec format error\". Adding --platform to each FROM stage\nensures correct architecture regardless of build host.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
