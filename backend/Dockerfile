@@ -3,6 +3,9 @@ FROM --platform=linux/amd64 node:22-alpine AS builder
 
 WORKDIR /app
 
+# OpenSSL needed for Prisma to detect the correct engine binary target
+RUN apk add --no-cache openssl
+
 # Install dependencies first (layer caching)
 COPY package.json package-lock.json ./
 RUN npm ci
