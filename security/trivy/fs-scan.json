@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d51bb-9ae2-7eab-869c-e33e717dcd8c",
-  "CreatedAt": "2026-04-03T05:05:42.62696226Z",
-  "ArtifactID": "sha256:22e02da8d920ec338063778e1374f5afeaed26d4cc79368beb7e378b466b52f0",
+  "ReportID": "019d533f-2a10-761b-ba8a-a219dc1bc15e",
+  "CreatedAt": "2026-04-03T12:09:01.712401662Z",
+  "ArtifactID": "sha256:c2bf60a866e142aa0c81230b74ed4b78fdcf04965313d9748fff7fb7fe38d843",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "9b32cf062e1615fd9b35ea507afcf497c1843897",
-    "CommitMsg": "ci: update Trivy fs scan results [skip ci]",
-    "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
-    "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
+    "Commit": "0be7260cc766ed69dae69b5896386c69701858e1",
+    "CommitMsg": "fix(security): upgrade shoutout to node:22 + apk upgrade for OpenSSL CVE-2025-15467\n\n- frontend: node:20-alpine → node:22-alpine (all 3 stages)\n- frontend: add `apk upgrade --no-cache` in runner stage\n- backend: add `apk upgrade --no-cache` alongside openssl install\n- Builds will produce 0.1.13 (backend) and 0.1.17 (frontend)\n- Trivy workflow matrix updated to match new tags\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
+    "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
   "Results": [
     {
