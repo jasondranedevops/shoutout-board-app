@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d50ba-853e-7ca0-8c6b-c99c4ccb36da",
-  "CreatedAt": "2026-04-03T00:24:54.334828925Z",
-  "ArtifactID": "sha256:10ec845c1f607f82b1765764cbdcd0b18a4a6b504c5f9e0ba3805a5bd36ebdda",
+  "ReportID": "019d50f4-316b-7674-b6a1-ea26c438e0b6",
+  "CreatedAt": "2026-04-03T01:27:53.963424006Z",
+  "ArtifactID": "sha256:dca8fa7a4c7815dd5865ec1eb3cbf61a08ec5115e089384bdb3dd7c784cd0b43",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "70ee3819b81beb43536bf229ba2d6822a590c5f4",
-    "CommitMsg": "fix(security): upgrade Next.js 14.2.3 → 16.2.2 to patch CVE-2025-29927\n\nCVE-2025-29927 (CVSS 9.1) — Next.js middleware authorization bypass via\nx-middleware-subrequest header. Fixed in 14.2.25+/15.2.3+/16.x.\n\nUpgraded to 16.2.2 (latest stable). Added .npmrc with legacy-peer-deps=true\nto resolve eslint-config-next@16 peer conflict with eslint@8 (dev-only,\nnot used during build).\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "dbba377f111ec97a1f1f939605d3d8b09d545452",
+    "CommitMsg": "fix(backend): upgrade base image node:20-alpine → node:22-alpine\n\nnode:22 is the current LTS — reduces HIGH CVEs in the alpine base OS packages.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
