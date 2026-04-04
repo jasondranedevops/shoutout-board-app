@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d5445-2c25-794d-9f2f-bb49aad8fce8",
-  "CreatedAt": "2026-04-03T16:55:12.677610937Z",
-  "ArtifactID": "sha256:f6d82ced8e88685efffe06fcd9955093394e7cacf6396d64d02388dc6585b7e1",
+  "ReportID": "019d56d4-a1c7-7aca-9b6b-ed0ebdc750e4",
+  "CreatedAt": "2026-04-04T04:51:08.871708223Z",
+  "ArtifactID": "sha256:fe7bc8d0c7fea6d7ef9f6e213f79b4edf5c21e6043ea41860f25e314ed595ffc",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "304d9e1ec3ecc7f39d4af91db167c8c0ec74fdb3",
-    "CommitMsg": "Merge pull request #2 from jasondranedevops/claude/thirsty-nightingale\n\nfix(backend): fastify v5 migration + Slack OAuth fixes",
-    "Author": "jason drane \u003cjddevops@dranefamily.com\u003e",
-    "Committer": "GitHub \u003cnoreply@github.com\u003e"
+    "Commit": "286fea4c2478172d28c006e47b2661ff8d1839f9",
+    "CommitMsg": "ci: update Trivy config scan results [skip ci]",
+    "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
+    "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
   },
   "Results": [
     {
