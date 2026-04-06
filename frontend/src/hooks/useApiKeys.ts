@@ -3,7 +3,6 @@
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import apiClient from '@/src/lib/api'
-import { ApiKey } from '@/src/types'
 
 const apiKeyKeys = {
   all: ['apiKeys'] as const,
@@ -42,9 +41,26 @@ export function useRevokeApiKey() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: async (keyId: string) => {
-      await apiClient.delete(`/v1/api-keys/${keyId}`)
+      const response = await apiClient.delete<any>(`/v1/api-keys/${keyId}`)
+      return response.data
     },
-    onSuccess: () => {
+    // Optimistic update — remove the key from the cache immediately
+    onMutate: async (keyId: string) => {
+      await queryClient.cancelQueries({ queryKey: apiKeyKeys.lists() })
+      const previous = queryClient.getQueryData(apiKeyKeys.lists())
+      queryClient.setQueryData(apiKeyKeys.lists(), (old: any[]) =>
+        Array.isArray(old) ? old.filter((k) => k.id !== keyId) : old
+      )
+      return { previous }
+    },
+    // If the API call fails, roll back to the previous list
+    onError: (_err, _keyId, context: any) => {
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(apiKeyKeys.lists(), context.previous)
+      }
+    },
+    // Always refetch after settle to stay in sync
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: apiKeyKeys.lists() })
     },
   })
