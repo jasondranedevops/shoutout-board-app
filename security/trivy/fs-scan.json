@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d632a-bc13-7789-ab7a-2cd06001f3bc",
-  "CreatedAt": "2026-04-06T14:20:38.291495054Z",
-  "ArtifactID": "sha256:eae5175c05fe674825b306eb9e12980b4a7fa5976c4700bd7f5511255d4006ce",
+  "ReportID": "019d6336-f80c-7310-9e4d-3f645c3ddd9a",
+  "CreatedAt": "2026-04-06T14:34:00.076202312Z",
+  "ArtifactID": "sha256:14470493d97116ebe5f59b67b717f04055c16ac15332e893dcce977f9d119efe",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "7a12116b286bb59710d51822db639d0c053c7b01",
-    "CommitMsg": "fix(frontend): copy public dir into standalone image for favicon serving\n\nNext.js standalone output does not include /public — must be copied\nexplicitly so favicon.svg and other static assets are served correctly.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
-    "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
-    "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
+    "Commit": "f241c9e54febd9159beb3b845ea262094e98514c",
+    "CommitMsg": "Merge pull request #4 from jasondranedevops/feat/analytics-real-data\n\nfeat(analytics): wire real data + board drill-down",
+    "Author": "jason drane \u003cjddevops@dranefamily.com\u003e",
+    "Committer": "GitHub \u003cnoreply@github.com\u003e"
   },
   "Results": [
     {
