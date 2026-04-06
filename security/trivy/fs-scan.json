@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d6470-998f-784c-ac3e-029183e1095b",
-  "CreatedAt": "2026-04-06T20:16:34.191544745Z",
-  "ArtifactID": "sha256:db58b8b6b7d0cf392f16ddbcf8641efa1bc9e7c136d95c48c28b9103151c58a0",
+  "ReportID": "019d647f-5518-7970-a13b-7dd5d2e03cae",
+  "CreatedAt": "2026-04-06T20:32:39.704620066Z",
+  "ArtifactID": "sha256:1c558992576d1363fb594d5281f3fc0b4e657c5a14f45648ff53cad8cbf4b6d2",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "f1b0bfdb274dd8d296cd059b13b2245da3069eb4",
-    "CommitMsg": "fix: use orgSlug in docs page nav links\n\nLogo, Dashboard link, and API Keys inline link now all use the\norgSlug from useParams so they route correctly.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "16ee3dffff20335d6a0f2daa256390c5eb86e048",
+    "CommitMsg": "feat: expand occasion types to match full Kudoboard-style set\n\nAdd 13 new occasion types: Thank You, Team Celebration, Company\nCelebration, Work Anniversary, Retirement, Congratulations,\nRecruiting \u0026 Onboarding, DEI Celebration, Office Competition,\nDepartment Event, Sympathy, Employee Appreciation, Holiday Celebration.\n\nUpdate Prisma schema/migration, frontend OccasionType, new board wizard,\nBoardCard icons, and public board icon map.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
