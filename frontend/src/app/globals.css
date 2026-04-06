@@ -32,7 +32,7 @@ body {
   }
 
   .card-hover {
-    @apply card transition-all duration-200 hover:shadow-md hover:border-gray-300;
+    @apply card transition-all duration-200 hover:shadow-md hover:border-gray-300 cursor-pointer;
   }
 
   .badge {

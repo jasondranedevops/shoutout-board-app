@@ -5,14 +5,15 @@
 
 import React, { useState } from 'react'
 import { useAuthStore } from '@/src/store/auth.store'
-import { LogOut, Settings, User } from 'lucide-react'
+import { LogOut, Menu, Settings } from 'lucide-react'
 import Link from 'next/link'
 
 interface TopBarProps {
   title?: string
+  onMenuClick?: () => void
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ title }) => {
+export const TopBar: React.FC<TopBarProps> = ({ title, onMenuClick }) => {
   const { user, logout } = useAuthStore()
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -23,10 +24,21 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
     .toUpperCase()
 
   return (
-    <header className="fixed left-64 right-0 top-0 z-40 border-b border-gray-200 bg-white">
-      <div className="flex h-16 items-center justify-between px-8">
-        {/* Title */}
-        {title && <h1 className="text-xl font-semibold text-gray-900">{title}</h1>}
+    <header className="fixed left-0 right-0 top-0 z-40 border-b border-gray-200 bg-white md:left-64">
+      <div className="flex h-16 items-center justify-between px-4 md:px-8">
+        <div className="flex items-center gap-3">
+          {/* Hamburger — mobile only */}
+          <button
+            onClick={onMenuClick}
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-gray-600 hover:bg-gray-100 transition-colors md:hidden"
+            aria-label="Open menu"
+          >
+            <Menu size={22} />
+          </button>
+
+          {/* Title */}
+          {title && <h1 className="text-xl font-semibold text-gray-900">{title}</h1>}
+        </div>
 
         {/* User dropdown */}
         <div className="relative">
@@ -50,7 +62,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title }) => {
               />
 
               {/* Menu */}
-              <div className="absolute right-0 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
+              <div className="absolute right-0 z-40 mt-2 w-48 rounded-lg border border-gray-200 bg-white shadow-lg">
                 {user && (
                   <>
                     <div className="border-b border-gray-200 px-4 py-3">

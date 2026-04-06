@@ -9,7 +9,7 @@ import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { GifPicker } from '@/src/components/ui/GifPicker'
-import { Send, Image } from 'lucide-react'
+import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, type LucideIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -31,13 +31,13 @@ const themeGradients: Record<string, string> = {
   orange: 'from-orange-400 to-orange-600',
 }
 
-const occasionEmojis: Record<string, string> = {
-  birthday: '🎂',
-  anniversary: '🎉',
-  farewell: '👋',
-  promotion: '🚀',
-  welcome: '👋',
-  custom: '💌',
+const occasionIcons: Record<string, LucideIcon> = {
+  birthday: Cake,
+  anniversary: Gift,
+  farewell: LogOut,
+  promotion: TrendingUp,
+  welcome: UserPlus,
+  custom: Heart,
 }
 
 export default function PublicBoardPage() {
@@ -93,9 +93,11 @@ export default function PublicBoardPage() {
 
   if (error || !boardData) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
-          <div className="text-6xl mb-4">🔒</div>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
+            <Lock size={32} className="text-gray-400" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Board not found</h1>
           <p className="text-gray-600">This board may not be available yet.</p>
         </div>
@@ -104,17 +106,19 @@ export default function PublicBoardPage() {
   }
 
   const board = boardData
-  const emoji = occasionEmojis[board.occasionType?.toLowerCase()] || '💌'
+  const OccasionIcon = occasionIcons[board.occasionType?.toLowerCase()] || Heart
   const gradient = themeGradients[board.coverTheme] || themeGradients.indigo
   const allPosts: Post[] = [...localPosts, ...(board.posts ?? [])]
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Cover */}
-      <div className={`bg-gradient-to-br ${gradient} py-20 text-center text-white`}>
-        <div className="text-7xl mb-4">{emoji}</div>
-        <h1 className="text-5xl font-bold mb-4">{board.title}</h1>
-        <p className="text-xl opacity-90">A message of appreciation for {board.recipientName}</p>
+      <div className={`bg-gradient-to-br ${gradient} px-4 py-12 text-center text-white md:py-20`}>
+        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center md:h-24 md:w-24">
+          <OccasionIcon size={64} className="text-white/90" />
+        </div>
+        <h1 className="mb-3 text-3xl font-bold md:text-5xl">{board.title}</h1>
+        <p className="text-base opacity-90 md:text-xl">A message of appreciation for {board.recipientName}</p>
       </div>
 
       <div className="mx-auto max-w-2xl px-4 py-16">
