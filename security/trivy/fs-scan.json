@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d647f-5518-7970-a13b-7dd5d2e03cae",
-  "CreatedAt": "2026-04-06T20:32:39.704620066Z",
-  "ArtifactID": "sha256:1c558992576d1363fb594d5281f3fc0b4e657c5a14f45648ff53cad8cbf4b6d2",
+  "ReportID": "019d6491-0b7c-732d-b2eb-060eaee78154",
+  "CreatedAt": "2026-04-06T20:52:00.508209216Z",
+  "ArtifactID": "sha256:4ae7bd86269a72de3c57c32adab77310033fca012a489cce49ec2931891ca71b",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "16ee3dffff20335d6a0f2daa256390c5eb86e048",
-    "CommitMsg": "feat: expand occasion types to match full Kudoboard-style set\n\nAdd 13 new occasion types: Thank You, Team Celebration, Company\nCelebration, Work Anniversary, Retirement, Congratulations,\nRecruiting \u0026 Onboarding, DEI Celebration, Office Competition,\nDepartment Event, Sympathy, Employee Appreciation, Holiday Celebration.\n\nUpdate Prisma schema/migration, frontend OccasionType, new board wizard,\nBoardCard icons, and public board icon map.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "87adcd51369c386c7557611125b99d3eb32f3fa0",
+    "CommitMsg": "feat: remove DEI Celebration from occasion picker\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
