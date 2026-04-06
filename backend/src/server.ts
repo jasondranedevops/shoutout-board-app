@@ -40,6 +40,9 @@ async function main() {
     await app.register(fastifyCors, {
       origin: true,
       credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Authorization', 'Content-Type', 'X-API-Key'],
+      exposedHeaders: ['Content-Length'],
     })
 
     await app.register(fastifyJwt, {
