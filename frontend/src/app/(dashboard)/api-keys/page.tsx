@@ -7,13 +7,12 @@ import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useApiKeys, useCreateApiKey } from '@/src/hooks/useApiKeys'
+import { useApiKeys, useCreateApiKey, useRevokeApiKey } from '@/src/hooks/useApiKeys'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { Modal } from '@/src/components/ui/Modal'
-import { Copy, Plus, Trash2 } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Eye, EyeOff, Plus, Trash2 } from 'lucide-react'
 
-// Validation schema for creating API key
 const createApiKeySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   scopes: z.array(z.string()).min(1, 'Select at least one scope'),
@@ -28,46 +27,70 @@ const scopeOptions = [
   { value: 'webhooks:manage', label: 'Manage Webhooks', description: 'Configure webhooks' },
 ]
 
+type ModalState = 'closed' | 'create' | 'reveal'
+
+interface NewKeyData {
+  name: string
+  key: string
+  prefix: string
+}
+
 export default function ApiKeysPage() {
   const { data: apiKeys = [], isLoading } = useApiKeys()
-  const createApiKeyMutation = useCreateApiKey()
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [copiedKeyId, setCopiedKeyId] = useState<string | null>(null)
+  const createMutation = useCreateApiKey()
+  const revokeMutation = useRevokeApiKey()
+
+  const [modalState, setModalState] = useState<ModalState>('closed')
+  const [newKeyData, setNewKeyData] = useState<NewKeyData | null>(null)
+  const [copiedKey, setCopiedKey] = useState(false)
+  const [keyVisible, setKeyVisible] = useState(false)
+  const [confirmRevokeId, setConfirmRevokeId] = useState<string | null>(null)
 
   const form = useForm<CreateApiKeyData>({
     resolver: zodResolver(createApiKeySchema),
-    defaultValues: {
-      name: '',
-      scopes: [],
-    },
+    defaultValues: { name: '', scopes: [] },
   })
 
-  const handleCreateApiKey = async (data: CreateApiKeyData) => {
+  const handleCreate = async (data: CreateApiKeyData) => {
     try {
-      await createApiKeyMutation.mutateAsync(data)
+      const result = await createMutation.mutateAsync(data)
+      setNewKeyData({ name: result.name, key: result.key, prefix: result.prefix })
+      setKeyVisible(false)
+      setCopiedKey(false)
       form.reset()
-      setIsModalOpen(false)
-    } catch (error) {
-      console.error('Failed to create API key:', error)
+      setModalState('reveal')
+    } catch (err) {
+      console.error('Failed to create API key:', err)
     }
   }
 
-  const handleCopyKey = (keyId: string) => {
-    navigator.clipboard.writeText(keyId)
-    setCopiedKeyId(keyId)
-    setTimeout(() => setCopiedKeyId(null), 2000)
+  const handleCopyKey = (value: string, setFlag: (v: boolean) => void) => {
+    navigator.clipboard.writeText(value)
+    setFlag(true)
+    setTimeout(() => setFlag(false), 2000)
+  }
+
+  const handleRevoke = async (keyId: string) => {
+    try {
+      await revokeMutation.mutateAsync(keyId)
+      setConfirmRevokeId(null)
+    } catch (err) {
+      console.error('Failed to revoke API key:', err)
+    }
+  }
+
+  const closeModal = () => {
+    setModalState('closed')
+    setNewKeyData(null)
+    form.reset()
   }
 
   const toggleScope = (scope: string) => {
-    const currentScopes = form.getValues('scopes')
-    if (currentScopes.includes(scope)) {
-      form.setValue(
-        'scopes',
-        currentScopes.filter((s) => s !== scope)
-      )
-    } else {
-      form.setValue('scopes', [...currentScopes, scope])
-    }
+    const current = form.getValues('scopes')
+    form.setValue(
+      'scopes',
+      current.includes(scope) ? current.filter((s) => s !== scope) : [...current, scope]
+    )
   }
 
   return (
@@ -76,101 +99,95 @@ export default function ApiKeysPage() {
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">API Keys</h1>
-          <p className="mt-2 text-gray-600">
-            Manage API keys for programmatic access to Shoutboard
-          </p>
+          <p className="mt-2 text-gray-600">Manage API keys for programmatic access to Shoutboard</p>
         </div>
-        <Button
-          variant="primary"
-          size="lg"
-          icon={<Plus size={20} />}
-          onClick={() => setIsModalOpen(true)}
-        >
+        <Button variant="primary" size="lg" icon={<Plus size={20} />} onClick={() => setModalState('create')}>
           Create API Key
         </Button>
       </div>
 
-      {/* Loading state */}
+      {/* Loading */}
       {isLoading && (
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="card h-20 animate-pulse bg-gray-200" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="card h-20 animate-pulse bg-gray-100" />
           ))}
         </div>
       )}
 
-      {/* API Keys table */}
+      {/* Empty state */}
       {!isLoading && apiKeys.length === 0 && (
         <div className="rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
           <h3 className="text-lg font-semibold text-gray-900">No API keys yet</h3>
           <p className="mt-2 text-gray-600">Create your first API key to get started</p>
-          <Button
-            variant="primary"
-            className="mt-4"
-            icon={<Plus size={20} />}
-            onClick={() => setIsModalOpen(true)}
-          >
+          <Button variant="primary" className="mt-4" icon={<Plus size={20} />} onClick={() => setModalState('create')}>
             Create API Key
           </Button>
         </div>
       )}
 
+      {/* Keys table */}
       {!isLoading && apiKeys.length > 0 && (
         <div className="card overflow-hidden">
           <table className="w-full">
             <thead className="border-b border-gray-200 bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Name
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Scopes
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Last Used
-                </th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
-                  Created
-                </th>
-                <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">
-                  Actions
-                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Name</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Key</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Scopes</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Last Used</th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">Created</th>
+                <th className="px-6 py-3 text-right text-sm font-medium text-gray-900">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
-              {apiKeys.map((key) => (
-                <tr key={key.id}>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {key.name}
+            <tbody className="divide-y divide-gray-100">
+              {(apiKeys as any[]).map((key) => (
+                <tr key={key.id} className="hover:bg-gray-50">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{key.name}</td>
+                  <td className="px-6 py-4 font-mono text-sm text-gray-500">
+                    {key.keyPrefix ?? key.lastFourChars ?? '••••'}…
                   </td>
                   <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {key.scopes.map((scope) => (
-                        <span
-                          key={scope}
-                          className="badge bg-blue-100 text-blue-800"
-                        >
-                          {scope}
-                        </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {(key.scopes ?? []).map((scope: string) => (
+                        <span key={scope} className="badge bg-indigo-50 text-indigo-700">{scope}</span>
                       ))}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {key.lastUsedAt
-                      ? new Date(key.lastUsedAt).toLocaleDateString()
-                      : 'Never'}
+                  <td className="px-6 py-4 text-sm text-gray-500">
+                    {key.lastUsedAt ? new Date(key.lastUsedAt).toLocaleDateString() : 'Never'}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className="px-6 py-4 text-sm text-gray-500">
                     {new Date(key.createdAt).toLocaleDateString()}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleCopyKey(key.id)}
-                      className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      <Copy size={16} />
-                      {copiedKeyId === key.id ? 'Copied' : 'Copy'}
-                    </button>
+                    {confirmRevokeId === key.id ? (
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-xs text-gray-500">Revoke this key?</span>
+                        <button
+                          onClick={() => handleRevoke(key.id)}
+                          disabled={revokeMutation.isPending}
+                          className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50"
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          onClick={() => setConfirmRevokeId(null)}
+                          className="text-sm text-gray-500 hover:text-gray-700"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmRevokeId(key.id)}
+                        className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-600 transition-colors"
+                        aria-label="Revoke key"
+                      >
+                        <Trash2 size={16} />
+                        Revoke
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -179,67 +196,99 @@ export default function ApiKeysPage() {
         </div>
       )}
 
-      {/* Create API Key Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        title="Create API Key"
-        onClose={() => {
-          setIsModalOpen(false)
-          form.reset()
-        }}
-      >
-        <form
-          onSubmit={form.handleSubmit(handleCreateApiKey)}
-          className="space-y-6"
-        >
+      {/* ── Create modal ──────────────────────────────────────────────── */}
+      <Modal isOpen={modalState === 'create'} title="Create API Key" onClose={closeModal}>
+        <form onSubmit={form.handleSubmit(handleCreate)} className="space-y-6">
           <Input
             label="Key Name"
-            placeholder="My Integration Key"
+            placeholder="My Integration"
             error={form.formState.errors.name?.message}
             {...form.register('name')}
           />
 
           <div>
-            <label className="mb-3 block text-sm font-medium text-gray-900">
-              Scopes
-            </label>
+            <label className="mb-3 block text-sm font-medium text-gray-900">Scopes</label>
             <div className="space-y-3">
               {scopeOptions.map((option) => (
-                <label
-                  key={option.value}
-                  className="flex cursor-pointer items-start gap-3"
-                >
+                <label key={option.value} className="flex cursor-pointer items-start gap-3">
                   <input
                     type="checkbox"
                     checked={form.watch('scopes').includes(option.value)}
                     onChange={() => toggleScope(option.value)}
-                    className="mt-1"
+                    className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600"
                   />
                   <div>
                     <p className="font-medium text-gray-900">{option.label}</p>
-                    <p className="text-sm text-gray-600">{option.description}</p>
+                    <p className="text-sm text-gray-500">{option.description}</p>
                   </div>
                 </label>
               ))}
             </div>
             {form.formState.errors.scopes && (
-              <p className="mt-2 text-sm text-red-600">
-                {form.formState.errors.scopes.message}
-              </p>
+              <p className="mt-2 text-sm text-red-600">{form.formState.errors.scopes.message}</p>
             )}
           </div>
 
-          <div className="border-t border-gray-200 pt-6">
-            <Button
-              type="submit"
-              variant="primary"
-              isLoading={createApiKeyMutation.isPending}
-              className="w-full"
-            >
+          <div className="border-t border-gray-200 pt-4">
+            <Button type="submit" variant="primary" isLoading={createMutation.isPending} className="w-full">
               Create API Key
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* ── Key reveal modal ──────────────────────────────────────────── */}
+      <Modal isOpen={modalState === 'reveal'} title="API Key Created" onClose={closeModal} size="md">
+        {newKeyData && (
+          <div className="space-y-4">
+            {/* Warning */}
+            <div className="flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <AlertTriangle size={20} className="mt-0.5 flex-shrink-0 text-amber-500" />
+              <div>
+                <p className="font-medium text-amber-800">Save this key now</p>
+                <p className="mt-0.5 text-sm text-amber-700">
+                  This is the only time your full API key will be shown. Copy it somewhere safe — it cannot be recovered.
+                </p>
+              </div>
+            </div>
+
+            {/* Key name */}
+            <div>
+              <p className="mb-1 text-sm font-medium text-gray-700">Key name</p>
+              <p className="text-gray-900">{newKeyData.name}</p>
+            </div>
+
+            {/* Key value */}
+            <div>
+              <p className="mb-1 text-sm font-medium text-gray-700">Your API key</p>
+              <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2.5">
+                <code className="flex-1 overflow-x-auto text-sm text-gray-800 select-all">
+                  {keyVisible ? newKeyData.key : '•'.repeat(Math.min(newKeyData.key.length, 40))}
+                </code>
+                <button
+                  onClick={() => setKeyVisible(!keyVisible)}
+                  className="flex-shrink-0 text-gray-400 hover:text-gray-600"
+                  aria-label={keyVisible ? 'Hide key' : 'Show key'}
+                >
+                  {keyVisible ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+                <button
+                  onClick={() => handleCopyKey(newKeyData.key, setCopiedKey)}
+                  className="flex-shrink-0 flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                >
+                  {copiedKey ? <Check size={16} /> : <Copy size={16} />}
+                  {copiedKey ? 'Copied' : 'Copy'}
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4">
+              <Button variant="primary" className="w-full" onClick={closeModal}>
+                Done — I've saved my key
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   )
