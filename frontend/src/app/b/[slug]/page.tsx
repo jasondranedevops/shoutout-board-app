@@ -9,7 +9,7 @@ import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { GifPicker } from '@/src/components/ui/GifPicker'
-import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, HandMetal, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
+import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -40,7 +40,6 @@ const occasionIcons: Record<string, LucideIcon> = {
   birthday:              Cake,
   congratulations:       Trophy,
   recruiting_onboarding: Handshake,
-  dei_celebration:       HandMetal,
   office_competition:    Medal,
   department_event:      ClipboardList,
   sympathy:              Flower2,

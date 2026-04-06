@@ -5,7 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { Board } from '@/src/types'
 import { Badge } from '@/src/components/ui/Badge'
-import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, HandMetal, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
+import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
 
 interface BoardCardProps {
   board: Board
@@ -21,7 +21,6 @@ const occasionIcons: Record<string, LucideIcon> = {
   birthday:              Cake,
   congratulations:       Trophy,
   recruiting_onboarding: Handshake,
-  dei_celebration:       HandMetal,
   office_competition:    Medal,
   department_event:      ClipboardList,
   sympathy:              Flower2,

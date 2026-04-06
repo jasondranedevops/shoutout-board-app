@@ -17,7 +17,6 @@ export type OccasionType =
   | 'retirement'
   | 'congratulations'
   | 'recruiting_onboarding'
-  | 'dei_celebration'
   | 'office_competition'
   | 'department_event'
   | 'sympathy'
