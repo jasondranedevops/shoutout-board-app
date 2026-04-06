@@ -7,6 +7,7 @@ import React, { useState, useRef, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { useBoard, useSendBoard } from '@/src/hooks/useBoards'
+import { useAuthStore } from '@/src/store/auth.store'
 import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Badge } from '@/src/components/ui/Badge'
@@ -19,6 +20,8 @@ export default function BoardDetailPage() {
   const boardId = params.id as string
   const { data: board, isLoading, refetch } = useBoard(boardId)
   const sendBoardMutation = useSendBoard(boardId)
+  const { org } = useAuthStore()
+  const slug = org?.slug ?? ''
 
   const [copiedLink, setCopiedLink] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -61,7 +64,7 @@ export default function BoardDetailPage() {
       <div className="section-container">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-900">Board not found</h2>
-          <Link href="/dashboard">
+          <Link href={`/${slug}/dashboard`}>
             <Button variant="primary" className="mt-6">
               Back to boards
             </Button>

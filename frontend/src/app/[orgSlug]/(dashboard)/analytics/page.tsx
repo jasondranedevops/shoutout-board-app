@@ -19,6 +19,7 @@ import {
 } from 'recharts'
 import { useOrgAnalytics, useAnalyticsTrends } from '@/src/hooks/useAnalytics'
 import { useBoards } from '@/src/hooks/useBoards'
+import { useAuthStore } from '@/src/store/auth.store'
 import { ArrowRight, TrendingUp } from 'lucide-react'
 
 // ── Skeleton ──────────────────────────────────────────────────────────────────
@@ -49,6 +50,8 @@ export default function AnalyticsPage() {
   const { data: orgData, isLoading: orgLoading } = useOrgAnalytics()
   const { data: trends, isLoading: trendsLoading } = useAnalyticsTrends()
   const { data: boardsData, isLoading: boardsLoading } = useBoards(1, 20)
+  const { org } = useAuthStore()
+  const slug = org?.slug ?? ''
 
   const boards = Array.isArray(boardsData) ? boardsData : boardsData?.data ?? []
 
@@ -173,7 +176,7 @@ export default function AnalyticsPage() {
             {boards.map((board: any) => (
               <Link
                 key={board.id}
-                href={`/analytics/boards/${board.id}`}
+                href={`/${slug}/analytics/boards/${board.id}`}
                 className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors group"
               >
                 <div className="min-w-0">

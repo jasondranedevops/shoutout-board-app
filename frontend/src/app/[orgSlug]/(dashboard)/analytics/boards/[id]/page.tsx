@@ -17,6 +17,7 @@ import {
 } from 'recharts'
 import { useBoardAnalytics } from '@/src/hooks/useAnalytics'
 import { useBoard } from '@/src/hooks/useBoards'
+import { useAuthStore } from '@/src/store/auth.store'
 import { ArrowLeft, Eye, MessageSquare, Users, UserX } from 'lucide-react'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -81,6 +82,8 @@ export default function BoardAnalyticsPage() {
   const { id } = useParams<{ id: string }>()
   const { data: analytics, isLoading: analyticsLoading } = useBoardAnalytics(id)
   const { data: board, isLoading: boardLoading } = useBoard(id)
+  const { org } = useAuthStore()
+  const slug = org?.slug ?? ''
 
   const isLoading = analyticsLoading || boardLoading
   const timelineData = analytics ? buildTimelineData(analytics.postsPerDay) : []
@@ -89,7 +92,7 @@ export default function BoardAnalyticsPage() {
     <div className="section-container">
       {/* Back nav */}
       <Link
-        href="/analytics"
+        href={`/${slug}/analytics`}
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 transition-colors"
       >
         <ArrowLeft size={16} />
@@ -226,7 +229,7 @@ export default function BoardAnalyticsPage() {
       {!isLoading && board && (
         <div className="mt-6 flex justify-end">
           <Link
-            href={`/boards/${board.id}`}
+            href={`/${slug}/boards/${board.id}`}
             className="inline-flex items-center gap-2 text-sm font-medium text-indigo-600 hover:text-indigo-700"
           >
             View board

@@ -14,7 +14,8 @@ interface TopBarProps {
 }
 
 export const TopBar: React.FC<TopBarProps> = ({ title, onMenuClick }) => {
-  const { user, logout } = useAuthStore()
+  const { user, org, logout } = useAuthStore()
+  const slug = org?.slug ?? ''
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const userInitials = user?.name
@@ -75,7 +76,7 @@ export const TopBar: React.FC<TopBarProps> = ({ title, onMenuClick }) => {
                 )}
 
                 <Link
-                  href="/settings"
+                  href={`/${slug}/settings`}
                   className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
                   onClick={() => setDropdownOpen(false)}
                 >

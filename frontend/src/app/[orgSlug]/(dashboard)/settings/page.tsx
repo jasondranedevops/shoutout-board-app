@@ -4,6 +4,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -41,6 +42,7 @@ const WEBHOOK_EVENTS = [
 
 export default function SettingsPage() {
   const { org, user, setOrg } = useAuthStore()
+  const router = useRouter()
   const queryClient = useQueryClient()
 
   const [settingsSaved, setSettingsSaved] = useState(false)
@@ -76,6 +78,10 @@ export default function SettingsPage() {
       setSettingsSaved(true)
       setSettingsError(null)
       setTimeout(() => setSettingsSaved(false), 3000)
+      // If slug changed, navigate to the new URL
+      if (updatedOrg.slug !== org?.slug) {
+        router.replace(`/${updatedOrg.slug}/settings`)
+      }
     },
     onError: (err: any) => {
       const msg = err?.response?.data?.message ?? err?.message ?? 'Failed to save settings'

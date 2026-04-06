@@ -117,7 +117,7 @@ export default function IntegrationsPage() {
     queryKey: ['zoom-status'],
     queryFn: async () => {
       const res = await apiClient.get('/v1/zoom/status')
-      return res.data.data as { installation: ZoomInstallation | null; webhookUrl: string }
+      return res.data.data.installation as ZoomInstallation | null
     },
   })
 
@@ -129,8 +129,16 @@ export default function IntegrationsPage() {
     },
   })
 
-  const zoomInstallation = zoomData?.installation ?? null
-  const zoomWebhookUrl = zoomData?.webhookUrl ?? ''
+  const zoomInstallation = zoomData ?? null
+
+  const { data: zoomWebhookData } = useQuery({
+    queryKey: ['zoom-webhook-url'],
+    queryFn: async () => {
+      const res = await apiClient.get('/v1/zoom/webhook-url')
+      return res.data.data.url as string
+    },
+  })
+  const zoomWebhookUrl = zoomWebhookData ?? ''
   const zoomAppConfig = zoomConfigData ?? null
 
   const handleConnectZoom = async () => {
@@ -558,7 +566,7 @@ export default function IntegrationsPage() {
               >
                 Disconnect
               </Button>
-            ) : zoomAppConfig ? (
+            ) : (
               <>
                 <Button
                   variant="primary"
@@ -579,25 +587,9 @@ export default function IntegrationsPage() {
                   }}
                   className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 underline underline-offset-2"
                 >
-                  <Settings size={12} /> Edit credentials
+                  <Settings size={12} /> {zoomAppConfig ? 'Edit credentials' : 'Configure'}
                 </button>
               </>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                icon={<Settings size={14} />}
-                onClick={() => {
-                  setZoomConfigForm((f) => ({
-                    ...f,
-                    clientId: zoomAppConfig?.clientId ?? '',
-                    botJid: zoomAppConfig?.botJid ?? '',
-                  }))
-                  setShowZoomConfigForm((v) => !v)
-                }}
-              >
-                Configure
-              </Button>
             )}
           </div>
         </div>
@@ -688,16 +680,14 @@ export default function IntegrationsPage() {
               >
                 Save credentials
               </Button>
-              {zoomAppConfig && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  icon={<ExternalLink size={14} />}
-                  onClick={handleConnectZoom}
-                >
-                  Connect Zoom
-                </Button>
-              )}
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<ExternalLink size={14} />}
+                onClick={handleConnectZoom}
+              >
+                Connect Zoom
+              </Button>
               <button
                 onClick={() => {
                   setShowZoomConfigForm(false)

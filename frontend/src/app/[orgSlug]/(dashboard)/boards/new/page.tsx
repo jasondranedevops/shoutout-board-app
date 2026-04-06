@@ -12,6 +12,7 @@ import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { useCreateBoard } from '@/src/hooks/useBoards'
 import { OccasionType } from '@/src/types'
+import { useAuthStore } from '@/src/store/auth.store'
 import apiClient from '@/src/lib/api'
 
 // Step 1 schema
@@ -71,6 +72,8 @@ const themes = [
 
 export default function NewBoardPage() {
   const router = useRouter()
+  const { org } = useAuthStore()
+  const slug = org?.slug ?? ''
   const [step, setStep] = useState(1)
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null)
   const [step2Data, setStep2Data] = useState<Step2Data | null>(null)
@@ -142,7 +145,7 @@ export default function NewBoardPage() {
         await apiClient.post(`/v1/boards/${result.id}/activate`)
       }
 
-      router.push(`/boards/${result.id}`)
+      router.push(`/${slug}/boards/${result.id}`)
     } catch (error: any) {
       setSubmitError(error?.response?.data?.error?.message || 'Failed to create board. Please try again.')
     }

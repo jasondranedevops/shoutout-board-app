@@ -94,6 +94,18 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
     }
   )
 
+  // ── Webhook URL ────────────────────────────────────────────────────────────
+  app.get(
+    '/v1/zoom/webhook-url',
+    { onRequest: [app.authenticate] },
+    async (request, reply) => {
+      return reply.send({
+        success: true,
+        data: { url: `${API_URL}/api/zoom/commands/${request.org!.id}` },
+      })
+    }
+  )
+
   // ── OAuth Install URL (JSON) ───────────────────────────────────────────────
   app.get(
     '/v1/zoom/oauth/install-url',
@@ -520,8 +532,7 @@ export const zoomRoutes: FastifyPluginAsync = async (app) => {
           createdAt: true,
         },
       })
-      const webhookUrl = `${API_URL}/api/zoom/commands/${request.org!.id}`
-      return reply.send({ success: true, data: { installation, webhookUrl } })
+      return reply.send({ success: true, data: { installation } })
     }
   )
 

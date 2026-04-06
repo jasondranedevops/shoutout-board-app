@@ -18,43 +18,16 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const pathname = usePathname()
   const { user, org, logout } = useAuthStore()
+  const slug = org?.slug ?? ''
 
   const navItems = [
-    {
-      label: 'Boards',
-      href: '/dashboard',
-      icon: Zap,
-    },
-    {
-      label: 'Analytics',
-      href: '/analytics',
-      icon: BarChart3,
-    },
-    {
-      label: 'Employees',
-      href: '/employees',
-      icon: Users,
-    },
-    {
-      label: 'Integrations',
-      href: '/integrations',
-      icon: Plug,
-    },
-    {
-      label: 'API Keys',
-      href: '/api-keys',
-      icon: Key,
-    },
-    {
-      label: 'Settings',
-      href: '/settings',
-      icon: Settings,
-    },
-    {
-      label: 'API Docs',
-      href: '/docs',
-      icon: BookOpen,
-    },
+    { label: 'Boards',       href: `/${slug}/dashboard`,    icon: Zap },
+    { label: 'Analytics',    href: `/${slug}/analytics`,    icon: BarChart3 },
+    { label: 'Employees',    href: `/${slug}/employees`,    icon: Users },
+    { label: 'Integrations', href: `/${slug}/integrations`, icon: Plug },
+    { label: 'API Keys',     href: `/${slug}/api-keys`,     icon: Key },
+    { label: 'Settings',     href: `/${slug}/settings`,     icon: Settings },
+    { label: 'API Docs',     href: `/${slug}/docs`,         icon: BookOpen },
   ]
 
   return (
@@ -76,7 +49,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
 
       {/* Logo */}
       <div className="mb-8 px-6">
-        <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
+        <Link href={`/${slug}/dashboard`} className="flex items-center gap-2" onClick={onClose}>
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
             <Zap size={20} className="text-white" />
           </div>
@@ -89,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         <div className="mb-8 border-b border-gray-200 px-6 pb-6">
           <p className="text-xs font-medium uppercase text-gray-500">Workspace</p>
           <p className="mt-1 font-medium text-gray-900">{org.name}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{org.slug}</p>
         </div>
       )}
 
@@ -121,15 +95,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
         {user && (
           <div className="mb-4">
             <p className="text-xs font-medium text-gray-500">Logged in as</p>
-            <p className="mt-1 line-clamp-1 text-sm font-medium text-gray-900">
-              {user.name}
-            </p>
+            <p className="mt-1 line-clamp-1 text-sm font-medium text-gray-900">{user.name}</p>
             <p className="line-clamp-1 text-xs text-gray-500">{user.email}</p>
           </div>
         )}
         <button
           onClick={logout}
-          className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900"
         >
           <LogOut size={18} />
           Sign Out

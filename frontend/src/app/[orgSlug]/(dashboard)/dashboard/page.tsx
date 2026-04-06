@@ -6,12 +6,15 @@
 import React from 'react'
 import Link from 'next/link'
 import { useBoards } from '@/src/hooks/useBoards'
+import { useAuthStore } from '@/src/store/auth.store'
 import { BoardCard } from '@/src/components/boards/BoardCard'
 import { Button } from '@/src/components/ui/Button'
 import { Plus } from 'lucide-react'
 
 export default function DashboardPage() {
   const { data: boardsData, isLoading, error } = useBoards()
+  const { org } = useAuthStore()
+  const slug = org?.slug ?? ''
 
   const boards = boardsData?.boards || boardsData?.data || []
 
@@ -25,7 +28,7 @@ export default function DashboardPage() {
             Create and manage group recognition cards for your team
           </p>
         </div>
-        <Link href="/boards/new">
+        <Link href={`/${slug}/boards/new`}>
           <Button variant="primary" size="lg" icon={<Plus size={20} />}>
             Create Board
           </Button>
@@ -59,7 +62,7 @@ export default function DashboardPage() {
           <p className="mt-2 text-gray-600">
             Create your first recognition board to get started
           </p>
-          <Link href="/boards/new" className="mt-4 inline-block">
+          <Link href={`/${slug}/boards/new`} className="mt-4 inline-block">
             <Button variant="primary" icon={<Plus size={20} />}>
               Create your first board
             </Button>
