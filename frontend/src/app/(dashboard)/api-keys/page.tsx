@@ -11,7 +11,7 @@ import { useApiKeys, useCreateApiKey, useRevokeApiKey } from '@/src/hooks/useApi
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { Modal } from '@/src/components/ui/Modal'
-import { AlertTriangle, Check, Copy, Eye, EyeOff, Plus, XCircle } from 'lucide-react'
+import { AlertTriangle, Check, Copy, Eye, EyeOff, Plus, Trash2, XCircle } from 'lucide-react'
 
 const createApiKeySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
