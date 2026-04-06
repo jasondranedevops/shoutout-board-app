@@ -7,6 +7,7 @@ import React, { useState } from 'react'
 import { useAuthStore } from '@/src/store/auth.store'
 import { LogOut, Menu, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 
 interface TopBarProps {
   title?: string
@@ -15,7 +16,8 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({ title, onMenuClick }) => {
   const { user, org, logout } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const params = useParams()
+  const slug = (params?.orgSlug as string) || org?.slug || ''
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   const userInitials = user?.name

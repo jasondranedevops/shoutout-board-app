@@ -3,6 +3,8 @@
  */
 'use client'
 
+import { useParams } from 'next/navigation'
+
 import React from 'react'
 import Link from 'next/link'
 import { useBoards } from '@/src/hooks/useBoards'
@@ -14,7 +16,8 @@ import { Plus } from 'lucide-react'
 export default function DashboardPage() {
   const { data: boardsData, isLoading, error } = useBoards()
   const { org } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const params = useParams()
+  const slug = (params?.orgSlug as string) || org?.slug || ''
 
   const boards = boardsData?.boards || boardsData?.data || []
 

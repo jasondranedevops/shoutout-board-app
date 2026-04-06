@@ -47,22 +47,17 @@ async function slackPost(method: string, token: string, body: Record<string, unk
 
 // ── OAuth ─────────────────────────────────────────────────────────────────────
 
-export async function exchangeSlackCode(
-  code: string,
-  clientId: string,
-  clientSecret: string,
-  redirectUri: string,
-): Promise<{
+export async function exchangeSlackCode(code: string): Promise<{
   teamId: string
   teamName: string
   botToken: string
   botUserId: string
 }> {
   const params = new URLSearchParams({
-    client_id: clientId,
-    client_secret: clientSecret,
+    client_id: process.env.SLACK_CLIENT_ID!,
+    client_secret: process.env.SLACK_CLIENT_SECRET!,
     code,
-    redirect_uri: redirectUri,
+    redirect_uri: `${process.env.API_URL || 'http://localhost:4000'}/api/slack/oauth/callback`,
   })
 
   const res = await fetch(`${SLACK_API}/oauth.v2.access?${params}`)
@@ -191,10 +186,7 @@ export async function notifySlackBoardCreated(
   const appUrl = process.env.APP_URL || 'http://localhost:3000'
   try {
     await postBoardCreatedMessage(installation.botToken, installation.incomingChannel, {
-      title: board.title,
-      recipientName: board.recipientName,
-      boardSlug: board.slug,
-      occasionType: board.occasionType,
+      ...board,
       appUrl,
     })
   } catch (err) {
@@ -212,10 +204,7 @@ export async function notifySlackBoardSent(
   const appUrl = process.env.APP_URL || 'http://localhost:3000'
   try {
     await postBoardSentMessage(installation.botToken, installation.incomingChannel, {
-      title: board.title,
-      recipientName: board.recipientName,
-      boardSlug: board.slug,
-      postCount: board.postCount,
+      ...board,
       appUrl,
     })
   } catch (err) {

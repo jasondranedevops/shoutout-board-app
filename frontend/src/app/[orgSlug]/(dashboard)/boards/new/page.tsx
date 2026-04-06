@@ -4,7 +4,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -72,8 +72,9 @@ const themes = [
 
 export default function NewBoardPage() {
   const router = useRouter()
+  const params = useParams()
   const { org } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const slug = (params?.orgSlug as string) || org?.slug || ''
   const [step, setStep] = useState(1)
   const [step1Data, setStep1Data] = useState<Step1Data | null>(null)
   const [step2Data, setStep2Data] = useState<Step2Data | null>(null)

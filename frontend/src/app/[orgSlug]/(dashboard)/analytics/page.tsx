@@ -5,6 +5,7 @@
 
 import React from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import {
   BarChart,
   Bar,
@@ -51,7 +52,8 @@ export default function AnalyticsPage() {
   const { data: trends, isLoading: trendsLoading } = useAnalyticsTrends()
   const { data: boardsData, isLoading: boardsLoading } = useBoards(1, 20)
   const { org } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const params = useParams()
+  const slug = (params?.orgSlug as string) || org?.slug || ''
 
   const boards = Array.isArray(boardsData) ? boardsData : boardsData?.data ?? []
 

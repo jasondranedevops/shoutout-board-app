@@ -5,7 +5,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useParams } from 'next/navigation'
 import { Zap, BarChart3, Settings, Key, LogOut, BookOpen, Users, Plug, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuthStore } from '@/src/store/auth.store'
@@ -17,8 +17,12 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const pathname = usePathname()
+  const params = useParams()
   const { user, org, logout } = useAuthStore()
-  const slug = org?.slug ?? ''
+
+  // Use the URL param as the canonical slug — it's always correct even after refresh.
+  // Fall back to the store value (only present right after login before a refresh).
+  const slug = (params?.orgSlug as string) || org?.slug || ''
 
   const navItems = [
     { label: 'Boards',       href: `/${slug}/dashboard`,    icon: Zap },
@@ -58,11 +62,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => 
       </div>
 
       {/* Org info */}
-      {org && (
+      {(org || slug) && (
         <div className="mb-8 border-b border-gray-200 px-6 pb-6">
           <p className="text-xs font-medium uppercase text-gray-500">Workspace</p>
-          <p className="mt-1 font-medium text-gray-900">{org.name}</p>
-          <p className="mt-0.5 text-xs text-gray-400">{org.slug}</p>
+          <p className="mt-1 font-medium text-gray-900">{org?.name || slug}</p>
+          <p className="mt-0.5 text-xs text-gray-400">{slug}</p>
         </div>
       )}
 

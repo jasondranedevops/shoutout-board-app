@@ -21,7 +21,7 @@ export default function BoardDetailPage() {
   const { data: board, isLoading, refetch } = useBoard(boardId)
   const sendBoardMutation = useSendBoard(boardId)
   const { org } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const slug = (params?.orgSlug as string) || org?.slug || ''
 
   const [copiedLink, setCopiedLink] = useState(false)
   const [error, setError] = useState<string | null>(null)

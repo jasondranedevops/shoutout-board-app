@@ -79,11 +79,12 @@ function StatCard({
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function BoardAnalyticsPage() {
-  const { id } = useParams<{ id: string }>()
+  const params = useParams<{ id: string; orgSlug: string }>()
+  const id = params.id
   const { data: analytics, isLoading: analyticsLoading } = useBoardAnalytics(id)
   const { data: board, isLoading: boardLoading } = useBoard(id)
   const { org } = useAuthStore()
-  const slug = org?.slug ?? ''
+  const slug = params.orgSlug || org?.slug || ''
 
   const isLoading = analyticsLoading || boardLoading
   const timelineData = analytics ? buildTimelineData(analytics.postsPerDay) : []
