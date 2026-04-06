@@ -8,14 +8,26 @@ import { BoardStatus } from '@/src/types'
 interface BadgeProps {
   status?: BoardStatus | string
   variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger'
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
 }
 
-const statusVariantMap: Record<BoardStatus, BadgeProps['variant']> = {
+const statusVariantMap: Record<string, BadgeProps['variant']> = {
   draft: 'warning',
   active: 'primary',
   sent: 'success',
+  DRAFT: 'warning',
+  ACTIVE: 'primary',
+  SENT: 'success',
+}
+
+const statusLabelMap: Record<string, string> = {
+  draft: 'Draft',
+  active: 'Active',
+  sent: 'Sent',
+  DRAFT: 'Draft',
+  ACTIVE: 'Active',
+  SENT: 'Sent',
 }
 
 export const Badge = ({
@@ -24,7 +36,7 @@ export const Badge = ({
   children,
   className,
 }: BadgeProps) => {
-  const resolvedVariant = status ? statusVariantMap[status as BoardStatus] : variant || 'default'
+  const resolvedVariant = (status ? statusVariantMap[status] : undefined) ?? variant ?? 'default'
 
   const variantStyles = {
     default: 'bg-gray-100 text-gray-800',
@@ -42,7 +54,7 @@ export const Badge = ({
         className
       )}
     >
-      {children}
+      {children ?? (status ? (statusLabelMap[status] ?? status) : null)}
     </span>
   )
 }
