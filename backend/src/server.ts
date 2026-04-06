@@ -20,6 +20,7 @@ import { postsRoutes } from '@/routes/posts.routes'
 import { apiKeysRoutes } from '@/routes/api-keys.routes'
 import { webhooksRoutes } from '@/routes/webhooks.routes'
 import { analyticsRoutes } from '@/routes/analytics.routes'
+import { orgRoutes } from '@/routes/org.routes'
 
 config()
 
@@ -130,6 +131,7 @@ async function main() {
     await app.register(apiKeysRoutes)
     await app.register(webhooksRoutes)
     await app.register(analyticsRoutes)
+    await app.register(orgRoutes)
     await app.register((await import('@/routes/employees.routes')).employeesRoutes)
     await app.register((await import('@/routes/slack.routes')).slackRoutes)
     await app.register((await import('@/routes/zoom.routes')).zoomRoutes)
