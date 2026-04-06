@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d64a8-a83b-756f-a393-c36d5461dc8f",
-  "CreatedAt": "2026-04-06T21:17:47.963357921Z",
-  "ArtifactID": "sha256:cfaf5c931f1437a401a662680a22ce1b96460d61ce1088d36ce0cfe38a3b558b",
+  "ReportID": "019d64ae-684f-7b00-b7d6-e0179bb75307",
+  "CreatedAt": "2026-04-06T21:24:04.815722047Z",
+  "ArtifactID": "sha256:8b991f90d68bf42ad7ddd5bcdc8c67c828521dfb6cd02afc2d325e6f2854889e",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "652703f263d2087fe3e66a6bf6ef42c7328c35e8",
-    "CommitMsg": "fix(frontend): fix BoardCard link — include orgSlug prefix\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "938bce97ebc7ea28e3bf4bc08d2a430bd257f10a",
+    "CommitMsg": "fix(frontend): Badge auto-labels from status, handles uppercase API values\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
