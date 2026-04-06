@@ -3,7 +3,26 @@
  * Core data models for the application
  */
 
-export type OccasionType = 'birthday' | 'anniversary' | 'farewell' | 'promotion' | 'welcome' | 'custom'
+export type OccasionType =
+  | 'birthday'
+  | 'anniversary'
+  | 'farewell'
+  | 'promotion'
+  | 'welcome'
+  | 'custom'
+  | 'thank_you'
+  | 'team_celebration'
+  | 'company_celebration'
+  | 'work_anniversary'
+  | 'retirement'
+  | 'congratulations'
+  | 'recruiting_onboarding'
+  | 'dei_celebration'
+  | 'office_competition'
+  | 'department_event'
+  | 'sympathy'
+  | 'employee_appreciation'
+  | 'holiday_celebration'
 
 export type BoardStatus = 'draft' | 'active' | 'sent'
 

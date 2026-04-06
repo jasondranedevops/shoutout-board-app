@@ -9,7 +9,7 @@ import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { GifPicker } from '@/src/components/ui/GifPicker'
-import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, type LucideIcon } from 'lucide-react'
+import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, HandMetal, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -32,12 +32,25 @@ const themeGradients: Record<string, string> = {
 }
 
 const occasionIcons: Record<string, LucideIcon> = {
-  birthday: Cake,
-  anniversary: Gift,
-  farewell: LogOut,
-  promotion: TrendingUp,
-  welcome: UserPlus,
-  custom: Heart,
+  thank_you:             Mail,
+  team_celebration:      PartyPopper,
+  company_celebration:   Building2,
+  work_anniversary:      CalendarDays,
+  retirement:            Palmtree,
+  birthday:              Cake,
+  congratulations:       Trophy,
+  recruiting_onboarding: Handshake,
+  dei_celebration:       HandMetal,
+  office_competition:    Medal,
+  department_event:      ClipboardList,
+  sympathy:              Flower2,
+  employee_appreciation: ThumbsUp,
+  holiday_celebration:   Sparkles,
+  farewell:              Ship,
+  anniversary:           Gift,
+  promotion:             TrendingUp,
+  welcome:               UserPlus,
+  custom:                Star,
 }
 
 export default function PublicBoardPage() {

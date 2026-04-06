@@ -5,7 +5,7 @@ import React from 'react'
 import Link from 'next/link'
 import { Board } from '@/src/types'
 import { Badge } from '@/src/components/ui/Badge'
-import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, type LucideIcon } from 'lucide-react'
+import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, HandMetal, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
 
 interface BoardCardProps {
   board: Board
@@ -13,12 +13,25 @@ interface BoardCardProps {
 
 // Map occasion types to Lucide icons
 const occasionIcons: Record<string, LucideIcon> = {
-  birthday: Cake,
-  anniversary: Gift,
-  farewell: LogOut,
-  promotion: TrendingUp,
-  welcome: UserPlus,
-  custom: Heart,
+  thank_you:             Mail,
+  team_celebration:      PartyPopper,
+  company_celebration:   Building2,
+  work_anniversary:      CalendarDays,
+  retirement:            Palmtree,
+  birthday:              Cake,
+  congratulations:       Trophy,
+  recruiting_onboarding: Handshake,
+  dei_celebration:       HandMetal,
+  office_competition:    Medal,
+  department_event:      ClipboardList,
+  sympathy:              Flower2,
+  employee_appreciation: ThumbsUp,
+  holiday_celebration:   Sparkles,
+  farewell:              Ship,
+  anniversary:           Gift,
+  promotion:             TrendingUp,
+  welcome:               UserPlus,
+  custom:                Star,
 }
 
 // Map cover theme to gradient CSS
