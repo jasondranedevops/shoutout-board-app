@@ -3,15 +3,15 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d5c0f-cbb3-7033-82be-dc0d139c5adf",
-  "CreatedAt": "2026-04-05T05:13:52.307015103Z",
-  "ArtifactID": "sha256:a186c2a2a4d570c0639af23f225a11c09ecd6ce2d58c71da5c6016d866a1a79f",
+  "ReportID": "019d6141-738d-7316-a149-97d74ae670c5",
+  "CreatedAt": "2026-04-06T05:26:12.621204813Z",
+  "ArtifactID": "sha256:e44017b938a6525da1d3a118a80a7baf6a78c92f120b57adacc86dbebef04a7b",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "8e2157c8818315b05ff69e084fc38d658d18c39e",
+    "Commit": "b45b3033ba8e50288fb9a9b981d536e223e987d4",
     "CommitMsg": "ci: update Trivy fs scan results [skip ci]",
     "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
     "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
