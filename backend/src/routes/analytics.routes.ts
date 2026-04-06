@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
 import { prisma } from '@/db/client'
-import { NotFoundError, ForbiddenError } from '@/utils/errors'
+import { NotFoundError } from '@/utils/errors'
 
 export const analyticsRoutes: FastifyPluginAsync = async (app) => {
   // Organization analytics
@@ -17,54 +17,137 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const orgId = request.org!.id
 
-      // Total boards
-      const totalBoards = await prisma.board.count({
-        where: { orgId },
-      })
+      const [
+        totalBoards,
+        totalPosts,
+        contributors,
+        anonymousContributions,
+        boardsSentThisMonth,
+        occasionGroups,
+      ] = await Promise.all([
+        prisma.board.count({ where: { orgId } }),
 
-      // Total posts
-      const totalPosts = await prisma.post.count({
-        where: { board: { orgId } },
-      })
+        prisma.post.count({ where: { board: { orgId } } }),
 
-      // Total contributors (unique authors)
-      const totalContributors = await prisma.post.findMany({
-        distinct: ['authorId'],
-        where: { board: { orgId } },
-        select: { authorId: true },
-      })
+        prisma.post.findMany({
+          distinct: ['authorId'],
+          where: { board: { orgId } },
+          select: { authorId: true },
+        }),
 
-      // Boards sent this month
-      const now = new Date()
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+        prisma.post.count({
+          where: { board: { orgId }, isAnonymous: true },
+        }),
 
-      const boardsSentThisMonth = await prisma.board.count({
-        where: {
-          orgId,
-          sentAt: { gte: monthStart },
-        },
-      })
+        prisma.board.count({
+          where: {
+            orgId,
+            sentAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) },
+          },
+        }),
 
-      // Average posts per board
-      const avgPostsPerBoard =
-        totalBoards > 0 ? totalPosts / totalBoards : 0
+        prisma.board.groupBy({
+          by: ['occasionType'],
+          where: { orgId },
+          _count: { id: true },
+          orderBy: { _count: { id: 'desc' } },
+        }),
+      ])
+
+      const totalContributors = contributors.filter((c) => c.authorId).length
+      const avgPostsPerBoard = totalBoards > 0
+        ? Math.round((totalPosts / totalBoards) * 100) / 100
+        : 0
+
+      const occasionBreakdown = occasionGroups.map((g) => ({
+        occasion: g.occasionType.charAt(0).toUpperCase() + g.occasionType.slice(1).toLowerCase(),
+        count: g._count.id,
+      }))
 
       return reply.send({
         success: true,
         data: {
           totalBoards,
           totalPosts,
-          totalContributors: totalContributors.filter((c) => c.authorId).length,
-          totalAnonymousContributions: await prisma.post.count({
-            where: {
-              board: { orgId },
-              isAnonymous: true,
-            },
-          }),
+          totalContributors,
+          totalAnonymousContributions: anonymousContributions,
           boardsSentThisMonth,
-          avgPostsPerBoard: Math.round(avgPostsPerBoard * 100) / 100,
+          avgPostsPerBoard,
+          occasionBreakdown,
         },
       })
+    }
+  )
+
+  // Monthly trends — last 6 months
+  app.get(
+    '/v1/analytics/trends',
+    {
+      onRequest: [app.authenticate],
+      schema: {
+        description: 'Get monthly activity trends for the last 6 months',
+        tags: ['Analytics'],
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request, reply) => {
+      const orgId = request.org!.id
+
+      const sixMonthsAgo = new Date()
+      sixMonthsAgo.setDate(1)
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5)
+      sixMonthsAgo.setHours(0, 0, 0, 0)
+
+      const [boards, posts] = await Promise.all([
+        prisma.board.findMany({
+          where: { orgId, createdAt: { gte: sixMonthsAgo } },
+          select: { createdAt: true },
+        }),
+        prisma.post.findMany({
+          where: { board: { orgId }, createdAt: { gte: sixMonthsAgo } },
+          select: { createdAt: true, authorId: true },
+        }),
+      ])
+
+      // Build 6-month slots in order
+      type Slot = { month: string; boards: number; posts: number; contributorIds: Set<string> }
+      const monthMap = new Map<string, Slot>()
+
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date()
+        d.setDate(1)
+        d.setMonth(d.getMonth() - i)
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+        monthMap.set(key, {
+          month: d.toLocaleString('en-US', { month: 'short' }),
+          boards: 0,
+          posts: 0,
+          contributorIds: new Set(),
+        })
+      }
+
+      const monthKey = (date: Date) =>
+        `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+
+      boards.forEach((b) => {
+        const slot = monthMap.get(monthKey(b.createdAt))
+        if (slot) slot.boards++
+      })
+
+      posts.forEach((p) => {
+        const slot = monthMap.get(monthKey(p.createdAt))
+        if (slot) {
+          slot.posts++
+          if (p.authorId) slot.contributorIds.add(p.authorId)
+        }
+      })
+
+      const trends = Array.from(monthMap.values()).map(({ contributorIds, ...rest }) => ({
+        ...rest,
+        contributors: contributorIds.size,
+      }))
+
+      return reply.send({ success: true, data: trends })
     }
   )
 
@@ -88,37 +171,23 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
         throw new NotFoundError('Board')
       }
 
-      // View count
-      const viewCount = await prisma.boardView.count({
-        where: { boardId: request.params.id },
-      })
+      const [viewCount, postCount, contributors, posts] = await Promise.all([
+        prisma.boardView.count({ where: { boardId: board.id } }),
 
-      // Post count
-      const postCount = await prisma.post.count({
-        where: { boardId: request.params.id },
-      })
+        prisma.post.count({ where: { boardId: board.id } }),
 
-      // Unique contributors
-      const contributors = await prisma.post.findMany({
-        distinct: ['authorId'],
-        where: { boardId: request.params.id },
-        select: {
-          authorId: true,
-          authorName: true,
-        },
-      })
+        prisma.post.findMany({
+          distinct: ['authorId'],
+          where: { boardId: board.id },
+          select: { authorId: true, authorName: true },
+        }),
 
-      const uniqueContributors = contributors.filter((c) => c.authorId).length
-      const anonymousContributions = contributors.filter(
-        (c) => !c.authorId
-      ).length
-
-      // Posts timeline (posts per day)
-      const posts = await prisma.post.findMany({
-        where: { boardId: request.params.id },
-        select: { createdAt: true },
-        orderBy: { createdAt: 'asc' },
-      })
+        prisma.post.findMany({
+          where: { boardId: board.id },
+          select: { createdAt: true },
+          orderBy: { createdAt: 'asc' },
+        }),
+      ])
 
       const postsPerDay: Record<string, number> = {}
       posts.forEach((post) => {
@@ -131,8 +200,8 @@ export const analyticsRoutes: FastifyPluginAsync = async (app) => {
         data: {
           viewCount,
           postCount,
-          uniqueContributors,
-          anonymousContributions,
+          uniqueContributors: contributors.filter((c) => c.authorId).length,
+          anonymousContributions: contributors.filter((c) => !c.authorId).length,
           postsPerDay,
           boardStatus: board.status,
           createdAt: board.createdAt,

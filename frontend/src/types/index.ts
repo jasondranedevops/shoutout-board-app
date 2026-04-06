@@ -121,3 +121,40 @@ export interface ApiError {
   message: string
   errors?: Record<string, string[]>
 }
+
+/**
+ * Organization-level analytics
+ */
+export interface OrgAnalytics {
+  totalBoards: number
+  totalPosts: number
+  totalContributors: number
+  totalAnonymousContributions: number
+  boardsSentThisMonth: number
+  avgPostsPerBoard: number
+  occasionBreakdown: { occasion: string; count: number }[]
+}
+
+/**
+ * Monthly activity trend data point
+ */
+export interface AnalyticsTrend {
+  month: string
+  boards: number
+  posts: number
+  contributors: number
+}
+
+/**
+ * Board-level analytics
+ */
+export interface BoardAnalytics {
+  viewCount: number
+  postCount: number
+  uniqueContributors: number
+  anonymousContributions: number
+  postsPerDay: Record<string, number>
+  boardStatus: BoardStatus
+  createdAt: string
+  sentAt?: string
+}
