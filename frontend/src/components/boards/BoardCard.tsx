@@ -1,8 +1,11 @@
 /**
  * Board card component for grid display
  */
+'use client'
+
 import React from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { Board } from '@/src/types'
 import { Badge } from '@/src/components/ui/Badge'
 import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
@@ -44,6 +47,8 @@ const themeGradients: Record<string, string> = {
 }
 
 export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
+  const params = useParams()
+  const slug = params?.orgSlug as string
   const OccasionIcon = occasionIcons[board.occasionType?.toLowerCase()] || Heart
   const gradient = themeGradients[board.coverTheme] || themeGradients.indigo
 
@@ -69,7 +74,7 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
   }
 
   return (
-    <Link href={`/boards/${board.id}`}>
+    <Link href={`/${slug}/boards/${board.id}`}>
       <div className="card-hover group cursor-pointer overflow-hidden">
         {/* Cover gradient */}
         <div
