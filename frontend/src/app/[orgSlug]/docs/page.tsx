@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { Copy, Check, ChevronRight, Menu, X } from 'lucide-react'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -283,6 +284,8 @@ app.post('/webhooks/shoutboard', (req, res) => {
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default function DocsPage() {
+  const params = useParams()
+  const slug = (params?.orgSlug as string) || ''
   const [activeSection, setActiveSection] = useState('getting-started')
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
 
@@ -315,7 +318,7 @@ export default function DocsPage() {
       <header className="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
           <div className="flex items-center gap-3">
-            <Link href="/" className="text-xl font-bold text-indigo-600">
+            <Link href={`/${slug}/dashboard`} className="text-xl font-bold text-indigo-600">
               Shoutboard
             </Link>
             <ChevronRight size={16} className="text-gray-400" />
@@ -324,7 +327,7 @@ export default function DocsPage() {
 
           <div className="hidden md:flex items-center gap-6">
             <Link
-              href="/dashboard"
+              href={`/${slug}/dashboard`}
               className="text-sm font-medium text-gray-600 hover:text-gray-900"
             >
               Dashboard
@@ -615,7 +618,7 @@ export default function DocsPage() {
               <p className="text-gray-700 mb-6">
                 API keys are scoped credentials for server-to-server integrations. Manage them
                 from the{' '}
-                <Link href="/api-keys" className="text-indigo-600 hover:underline">
+                <Link href={`/${slug}/api-keys`} className="text-indigo-600 hover:underline">
                   API Keys
                 </Link>{' '}
                 page in your dashboard.
