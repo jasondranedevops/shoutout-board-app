@@ -5,20 +5,20 @@ import React from 'react'
 import Link from 'next/link'
 import { Board } from '@/src/types'
 import { Badge } from '@/src/components/ui/Badge'
-import { Users, FileText, Clock } from 'lucide-react'
+import { Users, FileText, Clock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, type LucideIcon } from 'lucide-react'
 
 interface BoardCardProps {
   board: Board
 }
 
-// Map occasion types to emojis
-const occasionEmojis: Record<string, string> = {
-  birthday: '🎂',
-  anniversary: '🎉',
-  farewell: '👋',
-  promotion: '🚀',
-  welcome: '👋',
-  custom: '💌',
+// Map occasion types to Lucide icons
+const occasionIcons: Record<string, LucideIcon> = {
+  birthday: Cake,
+  anniversary: Gift,
+  farewell: LogOut,
+  promotion: TrendingUp,
+  welcome: UserPlus,
+  custom: Heart,
 }
 
 // Map cover theme to gradient CSS
@@ -32,7 +32,7 @@ const themeGradients: Record<string, string> = {
 }
 
 export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
-  const emoji = occasionEmojis[board.occasionType?.toLowerCase()] || '💌'
+  const OccasionIcon = occasionIcons[board.occasionType?.toLowerCase()] || Heart
   const gradient = themeGradients[board.coverTheme] || themeGradients.indigo
 
   // Calculate time since creation
@@ -61,9 +61,9 @@ export const BoardCard: React.FC<BoardCardProps> = ({ board }) => {
       <div className="card-hover group cursor-pointer overflow-hidden">
         {/* Cover gradient */}
         <div
-          className={`bg-gradient-to-br ${gradient} h-32 flex items-center justify-center text-5xl`}
+          className={`bg-gradient-to-br ${gradient} h-32 flex items-center justify-center`}
         >
-          {emoji}
+          <OccasionIcon size={48} className="text-white/90" />
         </div>
 
         {/* Content */}

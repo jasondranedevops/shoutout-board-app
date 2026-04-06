@@ -6,11 +6,16 @@
 import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Zap, BarChart3, Settings, Key, LogOut, BookOpen, Users, Plug } from 'lucide-react'
+import { Zap, BarChart3, Settings, Key, LogOut, BookOpen, Users, Plug, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuthStore } from '@/src/store/auth.store'
 
-export const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen?: boolean
+  onClose?: () => void
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen = false, onClose }) => {
   const pathname = usePathname()
   const { user, org, logout } = useAuthStore()
 
@@ -53,10 +58,25 @@ export const Sidebar: React.FC = () => {
   ]
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-64 border-r border-gray-200 bg-white pt-8">
+    <aside
+      className={clsx(
+        'fixed left-0 top-0 z-50 h-screen w-64 border-r border-gray-200 bg-white pt-8 transition-transform duration-300',
+        'md:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
+      {/* Close button — mobile only */}
+      <button
+        onClick={onClose}
+        className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 md:hidden"
+        aria-label="Close menu"
+      >
+        <X size={20} />
+      </button>
+
       {/* Logo */}
       <div className="mb-8 px-6">
-        <Link href="/dashboard" className="flex items-center gap-2">
+        <Link href="/dashboard" className="flex items-center gap-2" onClick={onClose}>
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-primary">
             <Zap size={20} className="text-white" />
           </div>
@@ -81,6 +101,7 @@ export const Sidebar: React.FC = () => {
             <Link
               key={item.href}
               href={item.href}
+              onClick={onClose}
               className={clsx(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 isActive
