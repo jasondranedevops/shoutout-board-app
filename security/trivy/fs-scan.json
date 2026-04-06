@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d6336-f80c-7310-9e4d-3f645c3ddd9a",
-  "CreatedAt": "2026-04-06T14:34:00.076202312Z",
-  "ArtifactID": "sha256:14470493d97116ebe5f59b67b717f04055c16ac15332e893dcce977f9d119efe",
+  "ReportID": "019d633f-5aa3-7c37-8ead-635b3be6f515",
+  "CreatedAt": "2026-04-06T14:43:09.603802011Z",
+  "ArtifactID": "sha256:7f2739a36715cee4a7e13f483173dad063129fdf2d8ad157c3cc74f40389864d",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "f241c9e54febd9159beb3b845ea262094e98514c",
-    "CommitMsg": "Merge pull request #4 from jasondranedevops/feat/analytics-real-data\n\nfeat(analytics): wire real data + board drill-down",
+    "Commit": "cfd8cfe584dc6af1ac08616021bbcdfdff2dcf49",
+    "CommitMsg": "Merge pull request #5 from jasondranedevops/fix/api-keys\n\nfix(api-keys): fix modal, show key on creation, add revoke",
     "Author": "jason drane \u003cjddevops@dranefamily.com\u003e",
     "Committer": "GitHub \u003cnoreply@github.com\u003e"
   },
