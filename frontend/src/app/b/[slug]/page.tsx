@@ -9,7 +9,7 @@ import { PostCard } from '@/src/components/boards/PostCard'
 import { Button } from '@/src/components/ui/Button'
 import { Input } from '@/src/components/ui/Input'
 import { GifPicker } from '@/src/components/ui/GifPicker'
-import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, type LucideIcon } from 'lucide-react'
+import { Send, Image, Lock, Cake, Gift, LogOut, TrendingUp, UserPlus, Heart, Mail, Star, PartyPopper, Building2, CalendarDays, Palmtree, Trophy, Handshake, Medal, ClipboardList, Flower2, ThumbsUp, Sparkles, Ship, Plus, X, type LucideIcon } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -23,12 +23,12 @@ const addMessageSchema = z.object({
 type AddMessageData = z.infer<typeof addMessageSchema>
 
 const themeGradients: Record<string, string> = {
-  indigo: 'from-indigo-400 to-indigo-600',
-  violet: 'from-violet-400 to-violet-600',
-  rose: 'from-rose-400 to-rose-600',
-  emerald: 'from-emerald-400 to-emerald-600',
-  blue: 'from-blue-400 to-blue-600',
-  orange: 'from-orange-400 to-orange-600',
+  indigo:  'from-indigo-500 to-indigo-700',
+  violet:  'from-violet-500 to-violet-700',
+  rose:    'from-rose-500 to-rose-700',
+  emerald: 'from-emerald-500 to-emerald-700',
+  blue:    'from-blue-500 to-blue-700',
+  orange:  'from-orange-500 to-orange-700',
 }
 
 const occasionIcons: Record<string, LucideIcon> = {
@@ -59,6 +59,7 @@ export default function PublicBoardPage() {
   const [submitted, setSubmitted] = useState(false)
   const [selectedGif, setSelectedGif] = useState<string | null>(null)
   const [showGifPicker, setShowGifPicker] = useState(false)
+  const [showForm, setShowForm] = useState(false)
 
   const { data: boardData, isLoading, error } = useQuery({
     queryKey: ['public-board', slug],
@@ -86,23 +87,26 @@ export default function PublicBoardPage() {
       form.reset()
       setSelectedGif(null)
       setSubmitted(true)
-      setTimeout(() => setSubmitted(false), 3000)
+      setShowForm(false)
+      setTimeout(() => setSubmitted(false), 4000)
     } catch (err) {
       console.error('Failed to submit message:', err)
     }
   }
 
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-indigo-600 border-t-transparent" />
-          <p className="mt-4 text-gray-600">Loading board...</p>
+          <p className="mt-4 text-gray-500">Loading board…</p>
         </div>
       </div>
     )
   }
 
+  // ── Error ──────────────────────────────────────────────────────────────────
   if (error || !boardData) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
@@ -110,8 +114,8 @@ export default function PublicBoardPage() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
             <Lock size={32} className="text-gray-400" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Board not found</h1>
-          <p className="text-gray-600">This board may not be available yet.</p>
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">Board not found</h1>
+          <p className="text-gray-500">This board may not be available yet.</p>
         </div>
       </div>
     )
@@ -121,31 +125,91 @@ export default function PublicBoardPage() {
   const OccasionIcon = occasionIcons[board.occasionType?.toLowerCase()] || Heart
   const gradient = themeGradients[board.coverTheme] || themeGradients.indigo
   const allPosts: Post[] = [...localPosts, ...(board.posts ?? [])]
+  const canAdd = board.status !== 'SENT'
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {/* Cover */}
-      <div className={`bg-gradient-to-br ${gradient} px-4 py-12 text-center text-white md:py-20`}>
-        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center md:h-24 md:w-24">
-          <OccasionIcon size={64} className="text-white/90" />
+    <div className="min-h-screen bg-gray-100">
+
+      {/* ── Hero Cover ──────────────────────────────────────────────────────── */}
+      <div className={`relative bg-gradient-to-br ${gradient} px-4 pb-16 pt-14 text-center text-white`}>
+        {/* Decorative dots */}
+        <div className="pointer-events-none absolute inset-0 opacity-10"
+          style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '28px 28px' }}
+        />
+
+        <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm mb-5">
+          <OccasionIcon size={44} className="text-white" />
         </div>
-        <h1 className="mb-3 text-3xl font-bold md:text-5xl">{board.title}</h1>
-        <p className="text-base opacity-90 md:text-xl">A message of appreciation for {board.recipientName}</p>
+        <h1 className="text-4xl font-bold tracking-tight md:text-5xl mb-3">{board.title}</h1>
+        <p className="text-lg text-white/80">For <span className="font-semibold text-white">{board.recipientName}</span></p>
+
+        {/* Add message button anchored to bottom of cover */}
+        {canAdd && (
+          <div className="mt-8">
+            <button
+              onClick={() => setShowForm(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold shadow-lg transition-transform hover:scale-105 active:scale-95"
+              style={{ color: 'var(--color-indigo-600, #4f46e5)' }}
+            >
+              <Plus size={18} />
+              Add Your Message
+            </button>
+          </div>
+        )}
       </div>
 
-      <div className="mx-auto max-w-2xl px-4 py-16">
-        {/* Add message form */}
-        {board.status !== 'SENT' && (
-          <div className="card mb-12 p-6">
-            <h2 className="mb-4 text-xl font-semibold text-gray-900">Add Your Message</h2>
+      {/* ── Success banner ────────────────────────────────────────────────── */}
+      {submitted && (
+        <div className="sticky top-0 z-30 bg-green-500 py-3 text-center text-sm font-medium text-white shadow">
+          🎉 Your message was added to the board!
+        </div>
+      )}
 
-            {submitted && (
-              <div className="mb-4 rounded-lg bg-green-50 border border-green-200 p-3 text-green-700 text-sm font-medium">
-                🎉 Your message was added!
-              </div>
-            )}
+      {/* ── Masonry post grid ─────────────────────────────────────────────── */}
+      <div className="mx-auto max-w-6xl px-4 py-10">
+        {allPosts.length === 0 ? (
+          <div className="py-24 text-center">
+            <p className="text-lg text-gray-500">Be the first to leave a message!</p>
+          </div>
+        ) : (
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-5">
+            {allPosts.map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
+          </div>
+        )}
+      </div>
 
-            <form onSubmit={form.handleSubmit(handleAddMessage)} className="space-y-4">
+      {/* ── Footer ────────────────────────────────────────────────────────── */}
+      <div className="border-t border-gray-200 bg-white py-8 text-center">
+        <p className="text-sm text-gray-500">
+          Powered by <span className="font-semibold text-indigo-600">Shoutboard</span>
+        </p>
+      </div>
+
+      {/* ── Add Message Modal ─────────────────────────────────────────────── */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => { setShowForm(false); setShowGifPicker(false) }}
+          />
+
+          {/* Modal */}
+          <div className="relative w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+            {/* Header */}
+            <div className={`flex items-center justify-between rounded-t-2xl bg-gradient-to-r ${gradient} px-6 py-4`}>
+              <h2 className="text-lg font-semibold text-white">Add Your Message</h2>
+              <button
+                onClick={() => { setShowForm(false); setShowGifPicker(false) }}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white hover:bg-white/30 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
               <Input
                 label="Your Name"
                 placeholder="Jane Smith"
@@ -154,17 +218,17 @@ export default function PublicBoardPage() {
               />
 
               <div>
-                <label className="mb-2 block text-sm font-medium text-gray-900">
+                <label className="mb-1.5 block text-sm font-medium text-gray-900">
                   Your Message
                 </label>
                 <textarea
-                  placeholder="Share your message of appreciation..."
+                  placeholder="Share your message of appreciation…"
                   rows={4}
                   className="input-base"
                   {...form.register('contentText')}
                 />
                 {form.formState.errors.contentText && (
-                  <p className="mt-2 text-sm text-red-600">
+                  <p className="mt-1 text-sm text-red-600">
                     {form.formState.errors.contentText.message}
                   </p>
                 )}
@@ -173,24 +237,17 @@ export default function PublicBoardPage() {
               {/* GIF preview */}
               {selectedGif && (
                 <div className="relative inline-block">
-                  <img
-                    src={selectedGif}
-                    alt="Selected GIF"
-                    className="max-h-40 rounded-lg border border-gray-200"
-                  />
+                  <img src={selectedGif} alt="Selected GIF" className="max-h-40 rounded-lg border border-gray-200" />
                   <button
                     type="button"
                     onClick={() => setSelectedGif(null)}
                     className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white shadow hover:bg-red-600"
                   >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
+                    <X size={12} />
                   </button>
                 </div>
               )}
 
-              {/* GIF Picker */}
               {showGifPicker && (
                 <GifPicker
                   onSelect={(url) => { setSelectedGif(url); setShowGifPicker(false) }}
@@ -199,7 +256,7 @@ export default function PublicBoardPage() {
               )}
 
               <div className="flex items-center gap-3">
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     {...form.register('isAnonymous')}
@@ -207,7 +264,6 @@ export default function PublicBoardPage() {
                   />
                   <span className="text-sm text-gray-700">Post anonymously</span>
                 </label>
-
                 <button
                   type="button"
                   onClick={() => setShowGifPicker(!showGifPicker)}
@@ -223,43 +279,19 @@ export default function PublicBoardPage() {
               </div>
 
               <Button
-                type="submit"
+                type="button"
                 variant="primary"
                 isLoading={form.formState.isSubmitting}
                 className="w-full"
                 icon={<Send size={18} />}
+                onClick={form.handleSubmit(handleAddMessage)}
               >
                 Send Message
               </Button>
-            </form>
+            </div>
           </div>
-        )}
-
-        {/* Messages */}
-        <div>
-          <h2 className="mb-6 text-2xl font-bold text-gray-900">
-            Messages ({allPosts.length})
-          </h2>
-
-          {allPosts.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">Be the first to leave a message!</p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {allPosts.map((post) => (
-                <PostCard key={post.id} post={post} />
-              ))}
-            </div>
-          )}
         </div>
-      </div>
-
-      <div className="border-t border-gray-200 bg-gray-50 py-8 text-center">
-        <p className="text-gray-600">
-          Powered by <span className="font-semibold text-indigo-600">Shoutboard</span>
-        </p>
-      </div>
+      )}
     </div>
   )
 }
