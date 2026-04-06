@@ -15,7 +15,7 @@ export function useApiKeys() {
     queryKey: apiKeyKeys.lists(),
     queryFn: async () => {
       const response = await apiClient.get<any>('/v1/api-keys')
-      return response.data.data ?? response.data
+      return response.data.data?.keys ?? response.data.data ?? response.data
     },
   })
 }
