@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d6466-8211-7b72-b916-15f97b80ff06",
-  "CreatedAt": "2026-04-06T20:05:32.817751409Z",
-  "ArtifactID": "sha256:fa829221ab32f460a35da69c49419cfbba8205cf125c6266ea6eaf196570f0a1",
+  "ReportID": "019d6470-998f-784c-ac3e-029183e1095b",
+  "CreatedAt": "2026-04-06T20:16:34.191544745Z",
+  "ArtifactID": "sha256:db58b8b6b7d0cf392f16ddbcf8641efa1bc9e7c136d95c48c28b9103151c58a0",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "4edb8ace90a80235731d80a1ed0c86c6cabf665d",
-    "CommitMsg": "fix: use URL params for orgSlug instead of auth store\n\nAuth store resets on refresh since it has no persistence layer.\nRead orgSlug from useParams() as the canonical source of truth in\nSidebar, TopBar, and all dashboard pages — with org.slug as fallback.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "f1b0bfdb274dd8d296cd059b13b2245da3069eb4",
+    "CommitMsg": "fix: use orgSlug in docs page nav links\n\nLogo, Dashboard link, and API Keys inline link now all use the\norgSlug from useParams so they route correctly.\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
