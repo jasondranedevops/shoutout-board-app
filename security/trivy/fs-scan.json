@@ -3,16 +3,16 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d64a5-10d0-7a70-91a6-da899b9e1acd",
-  "CreatedAt": "2026-04-06T21:13:52.592685481Z",
-  "ArtifactID": "sha256:d3a21c3fec0519dc964433954a7d72275ece4cbb613d30f44f96d339ce79418f",
+  "ReportID": "019d64a8-a83b-756f-a393-c36d5461dc8f",
+  "CreatedAt": "2026-04-06T21:17:47.963357921Z",
+  "ArtifactID": "sha256:cfaf5c931f1437a401a662680a22ce1b96460d61ce1088d36ce0cfe38a3b558b",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "0cff182a5b664421568942fc58ca8f8d3f52f6cf",
-    "CommitMsg": "feat(frontend): Kudoboard-style public board — masonry grid, image-first cards, modal form\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
+    "Commit": "652703f263d2087fe3e66a6bf6ef42c7328c35e8",
+    "CommitMsg": "fix(frontend): fix BoardCard link — include orgSlug prefix\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
     "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
     "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
   },
