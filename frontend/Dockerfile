@@ -46,6 +46,7 @@ RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
 # next.config.js output: 'standalone' produces a minimal self-contained server
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
