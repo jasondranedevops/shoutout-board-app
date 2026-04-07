@@ -3,18 +3,18 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d64ae-684f-7b00-b7d6-e0179bb75307",
-  "CreatedAt": "2026-04-06T21:24:04.815722047Z",
-  "ArtifactID": "sha256:8b991f90d68bf42ad7ddd5bcdc8c67c828521dfb6cd02afc2d325e6f2854889e",
+  "ReportID": "019d6659-5172-7d3e-bf36-4530e1f69608",
+  "CreatedAt": "2026-04-07T05:10:22.834869521Z",
+  "ArtifactID": "sha256:fd1d50bc98db434cf9af50f125d18c3a68e204377c8171f42e32a665af8cbefe",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "938bce97ebc7ea28e3bf4bc08d2a430bd257f10a",
-    "CommitMsg": "fix(frontend): Badge auto-labels from status, handles uppercase API values\n\nCo-Authored-By: Claude Sonnet 4.6 \u003cnoreply@anthropic.com\u003e",
-    "Author": "Jason Drane \u003cclaude@dranefamily.com\u003e",
-    "Committer": "Jason Drane \u003cclaude@dranefamily.com\u003e"
+    "Commit": "d89bfb68bdbea8250572aecbbc8fb75853909953",
+    "CommitMsg": "ci: update Trivy config scan results [skip ci]",
+    "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
+    "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
   },
   "Results": [
     {
