@@ -3,15 +3,15 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d70a6-64df-70cb-9ea0-0beea5239e39",
-  "CreatedAt": "2026-04-09T05:10:46.239053511Z",
-  "ArtifactID": "sha256:26468f2421da8b4a82db27b635c8e11d01d04781df374bd806d3cca05f3441ae",
+  "ReportID": "019d75da-fc6a-7ef8-8282-85af3ec6bca3",
+  "CreatedAt": "2026-04-10T05:26:18.986982248Z",
+  "ArtifactID": "sha256:54387e69953e907e11ece439c2eee7a93f4ad095a25ce2fc357d2e8555713575",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "96f9a1459ec794611b37e17fe51a6049a9b24024",
+    "Commit": "021efc3d87fffef42e05cba4c1bc964a91ead272",
     "CommitMsg": "ci: update Trivy config scan results [skip ci]",
     "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
     "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
@@ -2888,6 +2888,59 @@
             }
           ],
           "AnalyzedBy": "npm"
+        }
+      ],
+      "Vulnerabilities": [
+        {
+          "VulnerabilityID": "CVE-2025-62718",
+          "VendorIDs": [
+            "GHSA-3p68-rc4w-qgx5"
+          ],
+          "PkgID": "axios@1.14.0",
+          "PkgName": "axios",
+          "PkgIdentifier": {
+            "PURL": "pkg:npm/axios@1.14.0",
+            "UID": "1f2e4f407e8ab8f7"
+          },
+          "InstalledVersion": "1.14.0",
+          "FixedVersion": "1.15.0",
+          "Status": "fixed",
+          "SeveritySource": "ghsa",
+          "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2025-62718",
+          "DataSource": {
+            "ID": "ghsa",
+            "Name": "GitHub Security Advisory npm",
+            "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
+          },
+          "Fingerprint": "sha256:534b2ae3cf2f3c2fec9658958c35e8cb425b912a49c6257d1ea6293f145ce52c",
+          "Title": "Axios has a NO_PROXY Hostname Normalization Bypass Leads to SSRF",
+          "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0, Axios does not correctly handle hostname normalization when checking NO_PROXY rules. Requests to loopback addresses like localhost. (with a trailing dot) or [::1] (IPv6 literal) skip NO_PROXY matching and go through the configured proxy. This goes against what developers expect and lets attackers force requests through a proxy, even if NO_PROXY is set up to protect loopback or internal services. This issue leads to the possibility of proxy bypass and SSRF vulnerabilities allowing attackers to reach sensitive loopback or internal services despite the configured protections. This vulnerability is fixed in 1.15.0.",
+          "Severity": "CRITICAL",
+          "CweIDs": [
+            "CWE-441",
+            "CWE-918"
+          ],
+          "VendorSeverity": {
+            "ghsa": 4
+          },
+          "CVSS": {
+            "ghsa": {
+              "V40Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:L/SC:H/SI:L/SA:L",
+              "V40Score": 9.3
+            }
+          },
+          "References": [
+            "https://datatracker.ietf.org/doc/html/rfc1034#section-3.1",
+            "https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2",
+            "https://github.com/axios/axios",
+            "https://github.com/axios/axios/commit/fb3befb6daac6cad26b2e54094d0f2d9e47f24df",
+            "https://github.com/axios/axios/pull/10661",
+            "https://github.com/axios/axios/releases/tag/v1.15.0",
+            "https://github.com/axios/axios/security/advisories/GHSA-3p68-rc4w-qgx5",
+            "https://nvd.nist.gov/vuln/detail/CVE-2025-62718"
+          ],
+          "PublishedDate": "2026-04-09T15:16:08.65Z",
+          "LastModifiedDate": "2026-04-09T17:16:24.557Z"
         }
       ]
     }
