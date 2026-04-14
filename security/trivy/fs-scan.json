@@ -3,15 +3,15 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d855d-cf85-7870-a23e-9441b6eff167",
-  "CreatedAt": "2026-04-13T05:43:30.949554643Z",
-  "ArtifactID": "sha256:b84a646494c8c257aa40611f45274a4ca2041eaa456586cf5d3b03fdfafdce9f",
+  "ReportID": "019d8a73-6b38-75a3-bf8b-ae4502f71424",
+  "CreatedAt": "2026-04-14T05:25:13.144370506Z",
+  "ArtifactID": "sha256:b426683aa6bf52185341abeaec8b69dd9389792b321e3445f6271338c8ab8c0c",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "c3c1d353ef164f702841bfb73577fed7955ce136",
+    "Commit": "7245ccc88a0f1825f9c65e21b3257bee8c32bf34",
     "CommitMsg": "ci: update Trivy config scan results [skip ci]",
     "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
     "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
@@ -2912,8 +2912,8 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:0b9a31c5779d6a62a3e349f932a1e4a9fa3a87ea5f4f272d641b7eebd7bec3d6",
-          "Title": "Axios is a promise based HTTP client for the browser and Node.js. Prio ...",
+          "Fingerprint": "sha256:225920ec52faac1eb0205003238696856531a3261299b5ffdaf674b1a1520e02",
+          "Title": "axios: Axios: Server-Side Request Forgery and proxy bypass due to improper hostname normalization",
           "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0, Axios does not correctly handle hostname normalization when checking NO_PROXY rules. Requests to loopback addresses like localhost. (with a trailing dot) or [::1] (IPv6 literal) skip NO_PROXY matching and go through the configured proxy. This goes against what developers expect and lets attackers force requests through a proxy, even if NO_PROXY is set up to protect loopback or internal services. This issue leads to the possibility of proxy bypass and SSRF vulnerabilities allowing attackers to reach sensitive loopback or internal services despite the configured protections. This vulnerability is fixed in 1.15.0.",
           "Severity": "CRITICAL",
           "CweIDs": [
@@ -2921,15 +2921,21 @@
             "CWE-918"
           ],
           "VendorSeverity": {
-            "ghsa": 4
+            "ghsa": 4,
+            "redhat": 3
           },
           "CVSS": {
             "ghsa": {
               "V40Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:L/SC:H/SI:L/SA:L",
               "V40Score": 9.3
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
+              "V3Score": 7
             }
           },
           "References": [
+            "https://access.redhat.com/security/cve/CVE-2025-62718",
             "https://datatracker.ietf.org/doc/html/rfc1034#section-3.1",
             "https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2",
             "https://github.com/axios/axios",
@@ -2937,10 +2943,11 @@
             "https://github.com/axios/axios/pull/10661",
             "https://github.com/axios/axios/releases/tag/v1.15.0",
             "https://github.com/axios/axios/security/advisories/GHSA-3p68-rc4w-qgx5",
-            "https://nvd.nist.gov/vuln/detail/CVE-2025-62718"
+            "https://nvd.nist.gov/vuln/detail/CVE-2025-62718",
+            "https://www.cve.org/CVERecord?id=CVE-2025-62718"
           ],
           "PublishedDate": "2026-04-09T15:16:08.65Z",
-          "LastModifiedDate": "2026-04-09T17:16:24.557Z"
+          "LastModifiedDate": "2026-04-13T15:02:47.353Z"
         },
         {
           "VulnerabilityID": "CVE-2026-40175",
@@ -2963,7 +2970,7 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:aad539b5ba8fba06bfdb52b546f37c38063af232d539c36313e91e12bfa57471",
+          "Fingerprint": "sha256:d0a2c21485b8af2cb9743bf573bf6ef6accf616019d10bb3f5e4b356d105a0f6",
           "Title": "Axios is a promise based HTTP client for the browser and Node.js. Prio ...",
           "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0, the Axios library is vulnerable to a specific \"Gadget\" attack chain that allows Prototype Pollution in any third-party dependency to be escalated into Remote Code Execution (RCE) or Full Cloud Compromise (via AWS IMDSv2 bypass). This vulnerability is fixed in 1.15.0.",
           "Severity": "CRITICAL",
@@ -2985,12 +2992,13 @@
             "https://github.com/axios/axios",
             "https://github.com/axios/axios/commit/363185461b90b1b78845dc8a99a1f103d9b122a1",
             "https://github.com/axios/axios/pull/10660",
+            "https://github.com/axios/axios/pull/10660#issuecomment-4224168081",
             "https://github.com/axios/axios/releases/tag/v1.15.0",
             "https://github.com/axios/axios/security/advisories/GHSA-fvcv-3m26-pcqx",
             "https://nvd.nist.gov/vuln/detail/CVE-2026-40175"
           ],
           "PublishedDate": "2026-04-10T20:16:22.8Z",
-          "LastModifiedDate": "2026-04-10T20:16:22.8Z"
+          "LastModifiedDate": "2026-04-13T15:02:06.187Z"
         },
         {
           "VulnerabilityID": "GHSA-q4gf-8mx6-v5v3",
@@ -3010,7 +3018,7 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:27a1e77b86ac47900c7b4c0f1610fed5f80475b924f647641f7bbc1f6c64b84f",
+          "Fingerprint": "sha256:18c109c01a7a8d6778bc50e96ef7fe570ae6feda9c8c7ce9ff56d1997a6578c8",
           "Title": "Next.js has a Denial of Service with Server Components",
           "Description": "A vulnerability affects certain React Server Components packages for versions 19.x and frameworks that use the affected packages, including Next.js 13.x, 14.x, 15.x, and 16.x using the App Router. The issue is tracked upstream as [CVE-2026-23869](https://github.com/facebook/react/security/advisories/GHSA-479c-33wc-g2pg). You can read more about this advisory our [this changelog](https://vercel.com/changelog/summary-of-cve-2026-23869).\n\nA specially crafted HTTP request can be sent to any App Router Server Function endpoint that, when deserialized, may trigger excessive CPU usage. This can result in denial of service in unpatched environments.",
           "Severity": "HIGH",
