@@ -3,15 +3,15 @@
   "Trivy": {
     "Version": "0.69.3"
   },
-  "ReportID": "019d8a73-6b38-75a3-bf8b-ae4502f71424",
-  "CreatedAt": "2026-04-14T05:25:13.144370506Z",
-  "ArtifactID": "sha256:b426683aa6bf52185341abeaec8b69dd9389792b321e3445f6271338c8ab8c0c",
+  "ReportID": "019d8f99-e665-77c5-8ac0-4b79a73efeab",
+  "CreatedAt": "2026-04-15T05:25:21.125510513Z",
+  "ArtifactID": "sha256:7f8f29da28db79ab9f348e5cc1db8cdbc8e945a2c838b4701aefce0c60b046f8",
   "ArtifactName": ".",
   "ArtifactType": "repository",
   "Metadata": {
     "RepoURL": "https://github.com/jasondranedevops/shoutout-board-app",
     "Branch": "main",
-    "Commit": "7245ccc88a0f1825f9c65e21b3257bee8c32bf34",
+    "Commit": "5df1761e9bfa36af557d070c446c97427a17c794",
     "CommitMsg": "ci: update Trivy config scan results [skip ci]",
     "Author": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e",
     "Committer": "github-actions[bot] \u003c41898282+github-actions[bot]@users.noreply.github.com\u003e"
@@ -2912,9 +2912,9 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:225920ec52faac1eb0205003238696856531a3261299b5ffdaf674b1a1520e02",
+          "Fingerprint": "sha256:299d6e43215d7e3dbac35fed1ef5ae0fa6d9087b1e8d30275af59fdedca8c5b9",
           "Title": "axios: Axios: Server-Side Request Forgery and proxy bypass due to improper hostname normalization",
-          "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0, Axios does not correctly handle hostname normalization when checking NO_PROXY rules. Requests to loopback addresses like localhost. (with a trailing dot) or [::1] (IPv6 literal) skip NO_PROXY matching and go through the configured proxy. This goes against what developers expect and lets attackers force requests through a proxy, even if NO_PROXY is set up to protect loopback or internal services. This issue leads to the possibility of proxy bypass and SSRF vulnerabilities allowing attackers to reach sensitive loopback or internal services despite the configured protections. This vulnerability is fixed in 1.15.0.",
+          "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0 and 0.31.0, Axios does not correctly handle hostname normalization when checking NO_PROXY rules. Requests to loopback addresses like localhost. (with a trailing dot) or [::1] (IPv6 literal) skip NO_PROXY matching and go through the configured proxy. This goes against what developers expect and lets attackers force requests through a proxy, even if NO_PROXY is set up to protect loopback or internal services. This issue leads to the possibility of proxy bypass and SSRF vulnerabilities allowing attackers to reach sensitive loopback or internal services despite the configured protections. This vulnerability is fixed in 1.15.0 and 0.31.0.",
           "Severity": "CRITICAL",
           "CweIDs": [
             "CWE-441",
@@ -2922,12 +2922,17 @@
           ],
           "VendorSeverity": {
             "ghsa": 4,
+            "nvd": 4,
             "redhat": 3
           },
           "CVSS": {
             "ghsa": {
               "V40Vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:L/VA:L/SC:H/SI:L/SA:L",
               "V40Score": 9.3
+            },
+            "nvd": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:L/A:L",
+              "V3Score": 9.9
             },
             "redhat": {
               "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:L/A:L",
@@ -2939,15 +2944,18 @@
             "https://datatracker.ietf.org/doc/html/rfc1034#section-3.1",
             "https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2",
             "https://github.com/axios/axios",
+            "https://github.com/axios/axios/commit/03cdfc99e8db32a390e12128208b6778492cee9c",
             "https://github.com/axios/axios/commit/fb3befb6daac6cad26b2e54094d0f2d9e47f24df",
             "https://github.com/axios/axios/pull/10661",
+            "https://github.com/axios/axios/pull/10688",
+            "https://github.com/axios/axios/releases/tag/v0.31.0",
             "https://github.com/axios/axios/releases/tag/v1.15.0",
             "https://github.com/axios/axios/security/advisories/GHSA-3p68-rc4w-qgx5",
             "https://nvd.nist.gov/vuln/detail/CVE-2025-62718",
             "https://www.cve.org/CVERecord?id=CVE-2025-62718"
           ],
           "PublishedDate": "2026-04-09T15:16:08.65Z",
-          "LastModifiedDate": "2026-04-13T15:02:47.353Z"
+          "LastModifiedDate": "2026-04-14T20:14:05.35Z"
         },
         {
           "VulnerabilityID": "CVE-2026-40175",
@@ -2961,7 +2969,7 @@
             "UID": "1f2e4f407e8ab8f7"
           },
           "InstalledVersion": "1.14.0",
-          "FixedVersion": "1.15.0",
+          "FixedVersion": "1.15.0, 0.31.0",
           "Status": "fixed",
           "SeveritySource": "ghsa",
           "PrimaryURL": "https://avd.aquasec.com/nvd/cve-2026-40175",
@@ -2970,9 +2978,9 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:d0a2c21485b8af2cb9743bf573bf6ef6accf616019d10bb3f5e4b356d105a0f6",
-          "Title": "Axios is a promise based HTTP client for the browser and Node.js. Prio ...",
-          "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0, the Axios library is vulnerable to a specific \"Gadget\" attack chain that allows Prototype Pollution in any third-party dependency to be escalated into Remote Code Execution (RCE) or Full Cloud Compromise (via AWS IMDSv2 bypass). This vulnerability is fixed in 1.15.0.",
+          "Fingerprint": "sha256:40e621b86b10b67c5dea5367ce4c4e5014eff46fa325f05ae26bea2059d42e5e",
+          "Title": "axios: Axios: Remote Code Execution via Prototype Pollution escalation",
+          "Description": "Axios is a promise based HTTP client for the browser and Node.js. Prior to 1.15.0 and 0.3.1, the Axios library is vulnerable to a specific \"Gadget\" attack chain that allows Prototype Pollution in any third-party dependency to be escalated into Remote Code Execution (RCE) or Full Cloud Compromise (via AWS IMDSv2 bypass). This vulnerability is fixed in 1.15.0 and 0.3.1.",
           "Severity": "CRITICAL",
           "CweIDs": [
             "CWE-113",
@@ -2980,25 +2988,35 @@
             "CWE-918"
           ],
           "VendorSeverity": {
-            "ghsa": 4
+            "ghsa": 4,
+            "redhat": 4
           },
           "CVSS": {
             "ghsa": {
               "V3Vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
               "V3Score": 10
+            },
+            "redhat": {
+              "V3Vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:H/I:H/A:H",
+              "V3Score": 9
             }
           },
           "References": [
+            "https://access.redhat.com/security/cve/CVE-2026-40175",
             "https://github.com/axios/axios",
+            "https://github.com/axios/axios/commit/03cdfc99e8db32a390e12128208b6778492cee9c",
             "https://github.com/axios/axios/commit/363185461b90b1b78845dc8a99a1f103d9b122a1",
             "https://github.com/axios/axios/pull/10660",
             "https://github.com/axios/axios/pull/10660#issuecomment-4224168081",
+            "https://github.com/axios/axios/pull/10688",
+            "https://github.com/axios/axios/releases/tag/v0.31.0",
             "https://github.com/axios/axios/releases/tag/v1.15.0",
             "https://github.com/axios/axios/security/advisories/GHSA-fvcv-3m26-pcqx",
-            "https://nvd.nist.gov/vuln/detail/CVE-2026-40175"
+            "https://nvd.nist.gov/vuln/detail/CVE-2026-40175",
+            "https://www.cve.org/CVERecord?id=CVE-2026-40175"
           ],
           "PublishedDate": "2026-04-10T20:16:22.8Z",
-          "LastModifiedDate": "2026-04-13T15:02:06.187Z"
+          "LastModifiedDate": "2026-04-14T16:16:47.637Z"
         },
         {
           "VulnerabilityID": "GHSA-q4gf-8mx6-v5v3",
@@ -3018,7 +3036,7 @@
             "Name": "GitHub Security Advisory npm",
             "URL": "https://github.com/advisories?query=type%3Areviewed+ecosystem%3Anpm"
           },
-          "Fingerprint": "sha256:18c109c01a7a8d6778bc50e96ef7fe570ae6feda9c8c7ce9ff56d1997a6578c8",
+          "Fingerprint": "sha256:609df9d0636afee77bde93e3a8cea1c8bca98b66202f68d6bc8fe3ea3a524bc4",
           "Title": "Next.js has a Denial of Service with Server Components",
           "Description": "A vulnerability affects certain React Server Components packages for versions 19.x and frameworks that use the affected packages, including Next.js 13.x, 14.x, 15.x, and 16.x using the App Router. The issue is tracked upstream as [CVE-2026-23869](https://github.com/facebook/react/security/advisories/GHSA-479c-33wc-g2pg). You can read more about this advisory our [this changelog](https://vercel.com/changelog/summary-of-cve-2026-23869).\n\nA specially crafted HTTP request can be sent to any App Router Server Function endpoint that, when deserialized, may trigger excessive CPU usage. This can result in denial of service in unpatched environments.",
           "Severity": "HIGH",
